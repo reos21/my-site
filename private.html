@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Личные сообщения</title>
+  <style>
+    body { font-family:sans-serif; display:flex; margin:0; height:100vh; }
+    #users { width:220px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box; overflow-y:auto; }
+    #chat { flex:1; padding:10px; display:flex; flex-direction:column; }
+    #privateChat { flex:1; border:1px solid #ccc; padding:10px; overflow-y:auto; margin-bottom:10px; }
+    input, button { padding:5px; font-size:14px; width:100%; box-sizing:border-box; margin-top:5px; }
+    .message { margin-bottom:5px; padding:3px 5px; border-radius:4px; }
+    .my-message { background:#e7f3ff; }
+    .user-item { cursor:pointer; padding:4px; border-bottom:1px solid #eee; }
+    .user-item:hover { background:#f0f0f0; }
+    .date-separator { text-align:center; background:#f0f0f0; padding:3px; margin:5px 0; border-radius:4px; font-size:12px; color:#666; }
+    .time { font-size:12px; color:#888; margin-left:5px; }
+    .delete-btn { background:none; border:none; color:red; cursor:pointer; font-size:12px; margin-left:5px; }
+  </style>
+</head>
+<body>
+
+<div id="users">
+  <h3>Регистрация/Вход</h3>
+  <input id="regUsername" placeholder="Ник" />
+  <input id="regPassword" type="password" placeholder="Пароль" />
+  <button onclick="registerUser()">Регистрация</button>
+  <button onclick="loginUser()">Вход</button>
+  <div id="currentUser" style="margin-top:5px;"></div>
+
+  <h3>Пользователи</h3>
+  <input id="searchUser" placeholder="Поиск" oninput="searchUsers()" />
+  <div id="userList"></div>
+</div>
+
+<div id="chat">
+  <h3>Личный чат</h3>
+  <div id="privateChat"></div>
+  <input id="privateMessage" placeholder="Сообщение" />
+  <button onclick="sendPrivateMessage()">Отправить</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
+  authDomain: "reos21-f0203.firebaseapp.com",
+  projectId: "reos21-f0203",
+  storageBucket: "reos21-f0203.firebasestorage.app",
+  messagingSenderId: "221186151213",
+  appId: "1:221186151213:web:7e9f4a842298070d8ff9a4",
+  measurementId: "G-61G91NP8DR"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentUser = null;
+let selectedUser = null;
+
+// ===== Регистрация и вход =====
+function registerUser(){
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  if(!username || !password) return alert('Введите ник и пароль');
+  const hash = CryptoJS.SHA256(password).toString();
+  db.collection('users').doc(username).get().then(doc=>{
+    if(doc.exists) return alert('Ник занят');
+    db.collection('users').doc(username).set({passwordHash:hash});
+    alert('Регистрация успешна');
+  });
+}
+
+function loginUser(){
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  if(!username || !password) return alert('Введите ник и пароль');
+  const hash = CryptoJS.SHA256(password).toString();
+  db.collection('users').doc(username).get().then(doc=>{
+    if(!doc.exists) return alert('Пользователь не найден');
+    if(doc.data().passwordHash!==hash) return alert('Неверный пароль');
+    currentUser = {username, uid:username};
+    document.getElementById('currentUser').textContent = 'Вы: '+username;
+    loadPrivateMessages();
+  });
+}
+
+// ===== Поиск пользователей =====
+function searchUsers(){
+  const q = document.getElementById('searchUser').value.trim().toLowerCase();
+  if(!q){ document.getElementById('userList').innerHTML=''; return; }
+  db.collection('users').get().then(snap=>{
+    const list = document.getElementById('userList');
+    list.innerHTML='';
+    snap.forEach(doc=>{
+      const uname = doc.id;
+      if(uname.toLowerCase().includes(q)){
+        const div = document.createElement('div');
+        div.textContent = uname;
+        div.className='user-item';
+        div.onclick = ()=>{ selectedUser = uname; loadPrivateMessages(); };
+        list.appendChild(div);
+      }
+    });
+  });
+}
+
+// ===== Личный чат =====
+function formatTime(ts){
+  if(!ts) return '';
+  const d = ts.toDate();
+  return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+}
+
+function sendPrivateMessage(){
+  if(!currentUser || !selectedUser) return alert('Выберите пользователя');
+  const msg = document.getElementById('privateMessage').value.trim();
+  if(!msg) return;
+  db.collection('privateMessages').add({
+    from: currentUser.uid,
+    to: selectedUser,
+    message: msg,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('privateMessage').value='';
+}
+
+function loadPrivateMessages(){
+  if(!currentUser || !selectedUser){ document.getElementById('privateChat').innerHTML=''; return; }
+  db.collection('privateMessages').orderBy('timestamp').onSnapshot(snap=>{
+    const chatDiv = document.getElementById('privateChat');
+    chatDiv.innerHTML='';
+    let lastDate='';
+    snap.forEach(doc=>{
+      const msg = doc.data();
+      if(!msg.timestamp) return;
+      if((msg.from!==currentUser.uid && msg.to!==currentUser.uid)) return;
+      if((msg.from!==selectedUser && msg.to!==selectedUser)) return;
+
+      const dateStr = msg.timestamp.toDate().toDateString();
+      if(dateStr!==lastDate){
+        chatDiv.innerHTML+=`<div class="date-separator">${dateStr}</div>`;
+        lastDate = dateStr;
+      }
+
+      const isMine = msg.from===currentUser.uid;
+      const nameLabel = isMine?`${currentUser.username} (вы)`:selectedUser;
+      const canDelete = isMine;
+      chatDiv.innerHTML += `<div class="message ${isMine?'my-message':''}">
+        <b>${nameLabel}</b>: ${msg.message} <span class="time">(${formatTime(msg.timestamp)})</span>
+        ${canDelete?`<button class="delete-btn" onclick="deletePrivateMessage('${doc.id}','${msg.from}')">🗑</button>`:''}
+      </div>`;
+    });
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  });
+}
+
+function deletePrivateMessage(id, uid){
+  if(currentUser.uid!==uid) return alert('Можно удалять только свои сообщения');
+  if(confirm('Удалить сообщение?')){
+    db.collection('privateMessages').doc(id).delete();
+  }
+}
+</script>
+
+</body>
+</html>
