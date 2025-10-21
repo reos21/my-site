@@ -2,25 +2,87 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Простой чат</title>
+  <title>Чат с Google-входом и датами</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
-    input, button { padding: 5px; font-size: 16px; margin-top: 5px; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #fafafa;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      height: 400px;
+      overflow-y: scroll;
+      padding: 10px;
+      background: #fff;
+    }
+    .message {
+      border-bottom: 1px solid #eee;
+      padding: 6px 8px;
+      border-radius: 5px;
+      margin-bottom: 4px;
+    }
+    .my-message {
+      background: #e7f3ff;
+    }
+    .time {
+      color: #888;
+      font-size: 12px;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: red;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+    input, button {
+      padding: 5px;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    #user-info {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #user-info img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .date-separator {
+      text-align: center;
+      color: #666;
+      background: #f0f0f0;
+      margin: 10px 0;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
 
-<h2>Чат</h2>
+<h2>💬 Чат с Google-входом, датами и пометкой "(вы)"</h2>
+
+<div id="user-info">
+  <button id="login-btn" onclick="signIn()">Войти через Google</button>
+  <button id="logout-btn" onclick="signOut()" style="display:none;">Выйти</button>
+  <span id="user-name"></span>
+  <img id="user-pic" src="" alt="" style="display:none;">
+</div>
+
 <div id="messages"></div>
 
-<input id="name" placeholder="Ваше имя" />
-
-<input id="message" placeholder="Сообщение" />
+<input id="message" placeholder="Сообщение" style="width:70%;" />
 <button onclick="sendMessage()">Отправить</button>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -38,16 +100,57 @@
   // Инициализация Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  const auth = firebase.auth();
+
   const messagesDiv = document.getElementById('messages');
+  const userNameEl = document.getElementById('user-name');
+  const userPicEl = document.getElementById('user-pic');
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  let currentUser = null;
+
+  // Авторизация через Google
+  function signIn() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
+  function signOut() {
+    auth.signOut();
+  }
+
+  // Отслеживание входа
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      userNameEl.textContent = user.displayName;
+      userPicEl.src = user.photoURL;
+      userPicEl.style.display = 'inline';
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline';
+    } else {
+      currentUser = null;
+      userNameEl.textContent = '';
+      userPicEl.style.display = 'none';
+      loginBtn.style.display = 'inline';
+      logoutBtn.style.display = 'none';
+    }
+  });
 
   // Отправка сообщения
   function sendMessage() {
-    const name = document.getElementById('name').value || 'Гость';
+    if (!currentUser) {
+      alert('Сначала войдите через Google!');
+      return;
+    }
+
     const message = document.getElementById('message').value.trim();
     if (!message) return;
 
     db.collection('messages').add({
-      name: name,
+      name: currentUser.displayName,
+      uid: currentUser.uid,
       message: message,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -55,17 +158,71 @@
     document.getElementById('message').value = '';
   }
 
-  // Получение сообщений в реальном времени
+  // Удаление сообщения
+  function deleteMessage(id, uid) {
+    if (!currentUser || currentUser.uid !== uid) {
+      alert('Вы можете удалять только свои сообщения!');
+      return;
+    }
+    if (confirm('Удалить это сообщение?')) {
+      db.collection('messages').doc(id).delete();
+    }
+  }
+
+  // Форматирование времени
+  function formatTime(timestamp) {
+    if (!timestamp) return '';
+    const date = timestamp.toDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  // Форматирование даты ("Сегодня", "Вчера" и т.п.)
+  function formatDateHeader(date) {
+    const now = new Date();
+    const d = new Date(date);
+    const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Сегодня';
+    if (diffDays === 1) return 'Вчера';
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return d.toLocaleDateString('ru-RU', options);
+  }
+
+  // Получение сообщений
   db.collection('messages')
     .orderBy('timestamp')
     .onSnapshot(snapshot => {
       messagesDiv.innerHTML = '';
+      let lastDate = '';
+
       snapshot.forEach(doc => {
         const msg = doc.data();
-        const text = `<b>${msg.name}:</b> ${msg.message}
-`;
-        messagesDiv.innerHTML += text;
+        if (!msg.timestamp) return;
+        const time = formatTime(msg.timestamp);
+        const dateStr = msg.timestamp.toDate().toDateString();
+
+        // Новый день → добавляем заголовок
+        if (dateStr !== lastDate) {
+          const dateHeader = formatDateHeader(msg.timestamp.toDate());
+          messagesDiv.innerHTML += `<div class="date-separator">${dateHeader}</div>`;
+          lastDate = dateStr;
+        }
+
+        const isMine = currentUser && currentUser.uid === msg.uid;
+        const nameLabel = isMine ? `${msg.name} <span style="color:#007bff;">(вы)</span>` : msg.name;
+        const canDelete = isMine;
+
+        const messageHTML = `
+          <div class="message ${isMine ? 'my-message' : ''}">
+            <b>${nameLabel}</b>: ${msg.message}
+            <span class="time">(${time})</span>
+            ${canDelete ? `<button class="delete-btn" onclick="deleteMessage('${doc.id}', '${msg.uid}')">🗑</button>` : ''}
+          </div>
+        `;
+        messagesDiv.innerHTML += messageHTML;
       });
+
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 </script>
