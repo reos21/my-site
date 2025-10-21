@@ -3,159 +3,142 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Личные сообщения — Мессенджер</title>
+<title>Личные сообщения — Исправленная версия</title>
 
-<!-- Шрифты -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f3f5f8; --card:#ffffff; --muted:#7b7b7b; --accent:#007bff; --accent-2:#28a745;
-}
-body.dark { --bg:#0f1115; --card:#16181b; --muted:#bdbdbd; --accent:#3399ff; --accent-2:#42b983; color:#eee; }
-body{ font-family:Inter,system-ui,Arial; margin:0; height:100vh; background:var(--bg); color:inherit; display:flex; flex-direction:column; }
+  :root{
+    --bg:#f3f5f8; --card:#fff; --muted:#6e6e6e; --accent:#007bff; --accent2:#28a745;
+  }
+  body.dark { --bg:#0f1115; --card:#161819; --muted:#bdbdbd; --accent:#3399ff; --accent2:#42b983; color:#eee; }
+  body{ margin:0; font-family:Inter,system-ui,Arial; background:var(--bg); height:100vh; display:flex; flex-direction:column; color:inherit; }
 
-/* header */
-header{ height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:var(--card); box-shadow:0 1px 0 rgba(0,0,0,0.04); }
-.header-left{ display:flex; gap:8px; align-items:center; }
-.icon-btn{ background:transparent; border:0; padding:8px; border-radius:8px; cursor:pointer; font-size:16px; }
-.icon-btn:active{ transform:translateY(1px); }
-#menuBtn { background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; }
+  /* header */
+  header{ height:56px; background:var(--card); display:flex; align-items:center; justify-content:space-between; padding:0 12px; box-shadow:0 1px 0 rgba(0,0,0,0.04); }
+  .header-left{ display:flex; gap:8px; align-items:center; }
+  .btn{ background:transparent; border:0; padding:8px; border-radius:8px; cursor:pointer; font-size:16px; }
+  .primary{ background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; border:0; padding:8px 10px; border-radius:8px; }
+  .small{ padding:6px 8px; border-radius:6px; border:0; background:var(--accent); color:#fff; }
+  .muted{ color:var(--muted); font-size:14px; }
 
-.header-right{ display:flex; gap:8px; align-items:center; }
+  /* layout */
+  .container{ display:flex; flex:1; min-height:0; } /* min-height:0 to allow children scroll */
+  /* desktop sidebar */
+  .sidebar{ width:300px; background:var(--card); border-right:1px solid rgba(0,0,0,0.06); display:flex; flex-direction:column; padding:12px; box-sizing:border-box; }
+  .sidebar .title{ font-weight:600; margin-bottom:8px; }
+  .auth{ display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
+  .auth input{ padding:8px; border-radius:8px; border:1px solid #ddd; background:transparent; color:inherit; }
+  .auth .row{ display:flex; gap:8px; }
+  .search{ display:flex; gap:8px; margin-bottom:10px; }
+  .search input{ flex:1; padding:8px; border-radius:8px; border:1px solid #ddd; }
+  .searchResults{ max-height:120px; overflow:auto; margin-bottom:8px; }
 
-/* layout */
-.container{ display:flex; flex:1; height:calc(100vh - 56px); overflow:hidden; position:relative; }
+  .chat-list{ overflow:auto; flex:1; }
+  .chat-item{ padding:8px; border-radius:8px; display:flex; justify-content:space-between; gap:8px; cursor:pointer; align-items:center; }
+  .chat-item .left{ display:flex; gap:8px; align-items:center; min-width:0; }
+  .avatar{ width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; background:linear-gradient(135deg,#eee,#ddd); color:#333; }
+  .chat-item .meta{ overflow:hidden; }
+  .chat-item .name{ font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+  .chat-item .last{ color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+  .chat-item:hover{ background:rgba(0,0,0,0.03); }
+  .chat-item.active{ background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; }
+  .unread{ background:#e53935; color:#fff; padding:4px 8px; border-radius:999px; font-size:12px; }
 
-/* sidebar (menu) */
-.sidebar{
-  width:320px; max-width:80%; background:var(--card); border-right:1px solid rgba(0,0,0,0.06);
-  display:flex; flex-direction:column; padding:12px; box-sizing:border-box;
-}
-.sidebar .title{ font-weight:600; margin-bottom:8px; }
-.searchBox{ display:flex; gap:8px; margin-bottom:8px; }
-.searchBox input{ flex:1; padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:transparent; color:inherit; }
-.smallBtn{ padding:8px 10px; border-radius:8px; border:0; cursor:pointer; background:var(--accent); color:#fff; }
+  /* mobile panel */
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.45); opacity:0; pointer-events:none; transition:opacity .22s; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .panel{ position:fixed; top:56px; left:-360px; bottom:0; width:320px; background:var(--card); box-shadow:6px 0 30px rgba(0,0,0,0.12); z-index:60; transition:left .28s cubic-bezier(.2,.9,.3,1); overflow:auto; }
+  .panel.show{ left:0; }
 
-/* chat list */
-.chat-list{ overflow:auto; flex:1; padding-right:6px; }
-.chat-item{ padding:10px; border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; }
-.chat-item .left{ display:flex; gap:8px; align-items:center; }
-.chat-item .avatar{ width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#eee,#ddd); display:flex; align-items:center; justify-content:center; font-weight:600; color:#333; }
-.chat-item .meta{ display:flex; flex-direction:column; }
-.chat-item .name{ font-weight:600; }
-.chat-item .last{ font-size:13px; color:var(--muted); max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.chat-item:hover{ background:rgba(0,0,0,0.03); }
-.chat-item.active{ background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; }
-.chat-unread{ background:#e53935; color:#fff; border-radius:999px; padding:4px 8px; font-size:12px; }
+  /* chat window */
+  .chat-window{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  .chat-header{ height:64px; display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(0,0,0,0.04); background:var(--card); }
+  .chat-header .title{ font-weight:600; }
+  .typing{ font-size:13px; color:var(--muted); margin-left:6px; }
 
-/* auth area in sidebar */
-.auth { display:flex; flex-direction:column; gap:8px; margin-bottom:8px; }
-.auth input{ padding:8px; border-radius:8px; border:1px solid #ddd; }
-.auth .row{ display:flex; gap:8px; }
+  .messages{ flex:1; overflow:auto; padding:16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(180deg,transparent,rgba(0,0,0,0.02)); min-height:0; }
+  .date-sep{ text-align:center; color:var(--muted); font-size:13px; margin:12px 0; }
 
-/* overlay menu for mobile */
-.overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.45); opacity:0; pointer-events:none; transition:opacity .22s; }
-.overlay.show{ opacity:1; pointer-events:auto; }
+  .msg{ max-width:72%; padding:10px 12px; border-radius:12px; background:var(--card); box-shadow:0 1px 0 rgba(0,0,0,0.03); align-self:flex-start; }
+  .msg.mine{ align-self:flex-end; background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; }
+  .msg .time{ display:block; font-size:11px; color:var(--muted); margin-top:6px; text-align:right; }
+  .msg .del{ color:#c33; cursor:pointer; margin-left:8px; font-size:12px; }
 
-/* sliding sidebar for mobile */
-.sidebar-panel{ position:fixed; left:-360px; top:56px; bottom:0; width:320px; z-index:60; transition:left .28s cubic-bezier(.2,.9,.3,1); box-shadow: 6px 0 24px rgba(0,0,0,0.12); }
-.sidebar-panel.show{ left:0; }
+  .composer{ display:flex; gap:8px; padding:12px; border-top:1px solid rgba(0,0,0,0.04); background:var(--card); align-items:center; }
+  .composer textarea{ flex:1; min-height:48px; max-height:160px; padding:10px; border-radius:10px; border:1px solid #ddd; resize:none; font-size:15px; }
+  .sendBtn{ background:var(--accent2); color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; }
 
-/* chat window */
-.chat-window{ flex:1; display:flex; flex-direction:column; min-width:0; }
-.chat-header{ height:64px; display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(0,0,0,0.04); background:var(--card); }
-.chat-header .title{ font-weight:600; }
-.typing{ font-size:13px; color:var(--muted); margin-left:6px; }
-
-/* messages area */
-.messages{ flex:1; overflow:auto; padding:16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(180deg,transparent,rgba(0,0,0,0.02)); }
-.date-sep{ text-align:center; color:var(--muted); font-size:13px; margin:12px 0; }
-
-/* message bubble */
-.msg { max-width:72%; padding:10px 12px; border-radius:12px; background:var(--card); box-shadow:0 1px 0 rgba(0,0,0,0.03); }
-.msg.mine{ align-self:flex-end; background:linear-gradient(90deg,var(--accent),#0056b3); color:#fff; }
-.msg .time{ display:block; font-size:11px; color:var(--muted); margin-top:6px; text-align:right; }
-.msg .delete{ position:relative; margin-left:8px; cursor:pointer; color:#c33; font-size:12px; }
-
-/* input area */
-.composer{ display:flex; gap:8px; padding:12px; align-items:center; border-top:1px solid rgba(0,0,0,0.04); background:var(--card); }
-.composer textarea{ flex:1; min-height:48px; max-height:160px; padding:8px 10px; border-radius:10px; border:1px solid #ddd; resize:none; font-size:15px; }
-.composer .sendBtn{ background:var(--accent-2); color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; }
-
-/* footer controls */
-.controls{ display:flex; gap:8px; align-items:center; }
-
-/* responsive */
-@media(max-width:900px){
-  .sidebar{ display:none; }
-  .sidebar-panel{ display:block; }
-  .chat-window{ width:100%; }
-}
-@media(min-width:901px){
-  .sidebar-panel{ display:none; }
-  .overlay{ display:none; }
-}
+  /* smaller screens */
+  @media (max-width:900px){
+    .sidebar{ display:none; }
+    .panel{ display:block; }
+    .overlay{ display:block; }
+    .chat-header{ padding-right:12px; }
+    .messages{ padding:10px; }
+  }
+  @media (min-width:901px){
+    .panel, .overlay{ display:none; }
+  }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
   <div class="header-left">
-    <button id="menuBtn" class="icon-btn" title="Меню ☰">☰</button>
+    <button id="menuBtn" class="primary btn">☰ Чаты</button>
     <div style="font-weight:600">Личные сообщения</div>
-    <div id="menuNotif" style="display:inline-block;margin-left:6px;"></div>
+    <div id="menuBadge" style="margin-left:8px;"></div>
   </div>
 
   <div class="header-right">
-    <div id="userInfo">—</div>
-    <button id="themeBtn" class="icon-btn" title="Тема">🌓</button>
-    <button id="logoutBtn" class="icon-btn" title="Выйти">🔓</button>
+    <div id="userInfo" class="muted">не в системе</div>
+    <button id="themeBtn" class="btn" title="Переключить тему">🌓</button>
   </div>
 </header>
 
+<!-- MAIN -->
 <div class="container">
-  <!-- desktop sidebar -->
+
+  <!-- Desktop sidebar -->
   <aside class="sidebar" id="desktopSidebar">
     <div class="title">Чаты</div>
 
     <div class="auth">
-      <input id="inpNick" placeholder="Ник" />
-      <input id="inpPass" placeholder="Пароль" type="password" />
-      <div class="row">
-        <button id="btnRegister" class="smallBtn">Регистрация</button>
-        <button id="btnLogin" class="smallBtn" style="background:var(--accent);">Вход</button>
+      <input id="inpNick" placeholder="Ник (логин)" />
+      <input id="inpPass" type="password" placeholder="Пароль" />
+      <div class="row" style="display:flex;gap:8px;">
+        <button id="btnRegister" class="small">Регистрация</button>
+        <button id="btnLogin" class="small" style="background:var(--accent)">Вход</button>
       </div>
-      <div style="display:flex; gap:8px; margin-top:6px;">
-        <button id="btnNewChat" class="smallBtn" style="flex:1;">Найти</button>
-        <button id="btnLogout" class="smallBtn" style="flex:1; background:#c0392b;">Выйти</button>
+      <div style="display:flex; gap:8px;">
+        <button id="btnNewChat" class="small" style="flex:1;">Найти</button>
+        <button id="btnLogout" class="small" style="flex:1; background:#c0392b;">Выйти</button>
       </div>
     </div>
 
-    <div style="margin-bottom:8px;">
-      <div class="searchBox">
-        <input id="searchInput" placeholder="Поиск пользователей..." />
-        <button id="searchBtn" class="smallBtn">OK</button>
-      </div>
-      <div id="searchResults" style="max-height:120px; overflow:auto;"></div>
+    <div class="search">
+      <input id="searchInput" placeholder="Поиск пользователей..." />
+      <button id="searchBtn" class="small">OK</button>
     </div>
+    <div id="searchResults" class="searchResults"></div>
 
     <div class="chat-list" id="chatListDesktop"></div>
   </aside>
 
-  <!-- mobile sidebar panel (slides in) -->
-  <div class="sidebar-panel" id="mobilePanel" aria-hidden="true">
+  <!-- Mobile sliding panel -->
+  <div class="panel" id="mobilePanel" aria-hidden="true">
     <div style="padding:12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-weight:600;">Меню</div>
-        <button id="closePanel" class="icon-btn">✕</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:600">Меню</div>
+        <button id="closePanel" class="btn">✕</button>
       </div>
 
       <div style="margin-top:10px;">
         <input id="m_searchInput" placeholder="Поиск..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;" />
       </div>
-
       <div id="mobileSearchResults" style="margin-top:8px;"></div>
+
       <hr style="margin:12px 0;">
       <div id="chatListMobile" style="max-height:60vh; overflow:auto;"></div>
     </div>
@@ -163,30 +146,34 @@ header{ height:56px; display:flex; align-items:center; justify-content:space-bet
 
   <div class="overlay" id="overlay"></div>
 
-  <!-- chat window -->
-  <section class="chat-window" id="chatWindow">
-    <div class="chat-header" id="chatHeader">
-      <div class="title" id="chatTitle">Выберите чат</div>
-      <div class="typing" id="typingIndicator" style="display:none">печатает...</div>
+  <!-- Chat window -->
+  <section class="chat-window">
+    <div class="chat-header">
+      <div style="display:flex;flex-direction:column;">
+        <div id="chatTitle" class="title">Выберите чат</div>
+        <div id="typingIndicator" class="typing" style="display:none">печатает...</div>
+      </div>
+      <div style="margin-left:auto"></div>
     </div>
 
-    <div class="messages" id="messages"></div>
+    <div class="messages" id="messages">
+      <div style="padding:12px;color:var(--muted)">Выберите чат слева или нажмите ☰</div>
+    </div>
 
     <div class="composer">
-      <textarea id="privateMessage" placeholder="Напишите сообщение..."></textarea>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="sendBtn" id="sendBtn">Отправить</button>
-      </div>
+      <textarea id="privateMessage" placeholder="Напишите сообщение..." disabled></textarea>
+      <button id="sendBtn" class="sendBtn" disabled>Отправить</button>
     </div>
   </section>
 </div>
 
+<!-- Firebase + Crypto -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
-/* ============ CONFIG ============ */
+/* ---------------- CONFIG ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
   authDomain: "reos21-f0203.firebaseapp.com",
@@ -198,16 +185,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ============ UI refs ============ */
+/* ---------------- UI refs ---------------- */
 const menuBtn = document.getElementById('menuBtn');
-const overlay = document.getElementById('overlay');
 const mobilePanel = document.getElementById('mobilePanel');
-const closePanel = document.getElementById('closePanel');
+const overlay = document.getElementById('overlay');
+const closePanelBtn = document.getElementById('closePanel');
 const chatListDesktop = document.getElementById('chatListDesktop');
 const chatListMobile = document.getElementById('chatListMobile');
 const searchInput = document.getElementById('searchInput');
-const m_searchInput = document.getElementById('m_searchInput');
+const searchBtn = document.getElementById('searchBtn');
 const searchResults = document.getElementById('searchResults');
+const m_searchInput = document.getElementById('m_searchInput');
 const mobileSearchResults = document.getElementById('mobileSearchResults');
 const messagesDiv = document.getElementById('messages');
 const chatTitle = document.getElementById('chatTitle');
@@ -219,54 +207,41 @@ const btnRegister = document.getElementById('btnRegister');
 const btnLogin = document.getElementById('btnLogin');
 const btnLogout = document.getElementById('btnLogout');
 const btnNewChat = document.getElementById('btnNewChat');
-const btnNewSearch = document.getElementById('searchBtn');
+const btnSearch = document.getElementById('searchBtn');
 const sendBtn = document.getElementById('sendBtn');
 const privateMessageInput = document.getElementById('privateMessage');
 const themeBtn = document.getElementById('themeBtn');
-const menuNotif = document.getElementById('menuNotif');
-const userInfoDisplay = document.getElementById('userInfo');
-const btnClosePanel = document.getElementById('closePanel');
+const menuBadge = document.getElementById('menuBadge');
 
-/* ============ STATE ============ */
-let currentUser = null;
-let selectedUser = null;
-let unreadCounts = {}; // { user: count }
-let typingTimeout = null;
+/* ---------------- STATE ---------------- */
+let currentUser = null;        // string username
+let selectedUser = null;       // string username
+let unreadCounts = {};        // {user: count}
+let chatsSnapshotUnsub = null;
+let messagesUnsub = null;
+let typingDocId = null;
 let localTypingTimer = null;
 
-/* ============ THEME ============ */
+/* ---------------- THEME ---------------- */
 if(localStorage.getItem('chat_theme') === 'dark') document.body.classList.add('dark');
-themeBtn.addEventListener('click', () => {
+themeBtn.addEventListener('click', ()=>{
   document.body.classList.toggle('dark');
   localStorage.setItem('chat_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
 });
 
-/* ============ MENU (mobile) ============ */
-menuBtn.addEventListener('click', openPanel);
-closePanel.addEventListener('click', closePanelFn);
-overlay.addEventListener('click', closePanelFn);
+/* ---------------- MOBILE PANEL ---------------- */
+menuBtn.addEventListener('click', ()=>{ mobilePanel.classList.add('show'); overlay.classList.add('show'); overlay.style.display='block'; });
+closePanelBtn.addEventListener('click', ()=>{ mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none'; });
+overlay.addEventListener('click', ()=>{ mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none'; });
 
-function openPanel(){
-  mobilePanel.classList.add('show');
-  mobilePanel.setAttribute('aria-hidden','false');
-  overlay.classList.add('show');
-  overlay.style.display='block';
-  setTimeout(()=>overlay.classList.add('visible'),10);
-}
-function closePanelFn(){
-  mobilePanel.classList.remove('show');
-  mobilePanel.setAttribute('aria-hidden','true');
-  overlay.classList.remove('show');
-  overlay.style.display='none';
-}
-
-/* ============ AUTH (local, simple) ============ */
+/* ---------------- AUTH ---------------- */
 btnRegister.addEventListener('click', registerLocal);
 btnLogin.addEventListener('click', loginLocal);
 btnLogout.addEventListener('click', logoutLocal);
 btnNewChat.addEventListener('click', ()=>{ if(!currentUser) return alert('Войдите'); const q = prompt('Ник пользователя'); if(q) startChat(q.trim()); });
-btnNewSearch.addEventListener('click', ()=>searchUsers(searchInput.value.trim(), searchResults, 'desktop'));
+searchBtn.addEventListener('click', ()=> searchUsers(searchInput.value.trim(), searchResults, 'desktop'));
 
+/* login/register functions (local, hash stored) */
 function registerLocal(){
   const nick = inpNick.value.trim();
   const pass = inpPass.value.trim();
@@ -274,9 +249,8 @@ function registerLocal(){
   const hash = CryptoJS.SHA256(pass).toString();
   db.collection('users').doc(nick).get().then(doc=>{
     if(doc.exists) return alert('Ник занят');
-    db.collection('users').doc(nick).set({passwordHash: hash});
-    alert('Пользователь создан. Войдите.');
-  });
+    db.collection('users').doc(nick).set({ passwordHash: hash }).then(()=> alert('Регистрация успешна — теперь войдите'));
+  }).catch(err=>console.error(err));
 }
 
 function loginLocal(){
@@ -287,24 +261,30 @@ function loginLocal(){
   db.collection('users').doc(nick).get().then(doc=>{
     if(!doc.exists) return alert('Пользователь не найден');
     if(doc.data().passwordHash !== hash) return alert('Неверный пароль');
+    // set current user as plain string
     currentUser = nick;
     localStorage.setItem('chatUser', currentUser);
     userInfo.textContent = `Вы: ${currentUser}`;
-    userInfoDisplay.textContent = currentUser;
-    loadChats(); // start listening
+    userInfo.style.color = '';
     requestNotificationPerm();
-    alert('Вход выполнен');
-  });
+    startAppAfterLogin();
+  }).catch(err=>console.error(err));
 }
 
 function logoutLocal(){
+  if(!currentUser) return;
   localStorage.removeItem('chatUser');
   currentUser = null;
-  userInfo.textContent = '';
-  userInfoDisplay.textContent = '';
+  selectedUser = null;
+  if(chatsSnapshotUnsub) chatsSnapshotUnsub();
+  if(messagesUnsub) messagesUnsub();
   chatListDesktop.innerHTML = '';
   chatListMobile.innerHTML = '';
-  messagesDiv.innerHTML = '';
+  messagesDiv.innerHTML = '<div style="padding:12px;color:var(--muted)">Вы вышли</div>';
+  userInfo.textContent = 'не в системе';
+  privateMessageInput.value = '';
+  privateMessageInput.disabled = true;
+  sendBtn.disabled = true;
   alert('Вы вышли');
 }
 
@@ -314,15 +294,17 @@ function logoutLocal(){
   if(saved){
     currentUser = saved;
     userInfo.textContent = `Вы: ${currentUser}`;
-    userInfoDisplay.textContent = currentUser;
-    loadChats();
     requestNotificationPerm();
+    startAppAfterLogin();
   }
 })();
 
-/* ============ SEARCH USERS ============ */
-function searchUsers(q, resultsContainer, mode){
-  resultsContainer.innerHTML = '';
+/* ---------------- SEARCH USERS (desktop/mobile) ---------------- */
+m_searchInput.addEventListener('input', ()=> searchUsers(m_searchInput.value.trim(), mobileSearchResults, 'mobile'));
+searchInput.addEventListener('input', ()=> searchUsers(searchInput.value.trim(), searchResults, 'desktop'));
+
+function searchUsers(q, container, mode){
+  container.innerHTML = '';
   if(!q) return;
   db.collection('users').get().then(snap=>{
     const found = [];
@@ -330,260 +312,239 @@ function searchUsers(q, resultsContainer, mode){
       const uname = doc.id;
       if(uname.toLowerCase().includes(q.toLowerCase()) && uname !== currentUser) found.push(uname);
     });
-    if(found.length===0){ resultsContainer.innerHTML = '<div style="padding:8px;color:var(--muted)">Ничего не найдено</div>'; return; }
+    if(found.length === 0){ container.innerHTML = '<div style="padding:8px;color:var(--muted)">Ничего не найдено</div>'; return; }
     found.forEach(u=>{
       const item = document.createElement('div');
       item.className='chat-item';
-      item.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><div class="avatar">${u.charAt(0).toUpperCase()}</div><div><div class="name">${u}</div></div></div><div><button class="smallBtn">Чат</button></div>`;
-      item.querySelector('button').addEventListener('click', ()=> {
+      item.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><div class="avatar">${u.charAt(0).toUpperCase()}</div>
+                         <div style="min-width:0"><div class="name">${u}</div></div></div>
+                         <div><button class="small" data-user="${u}">Чат</button></div>`;
+      item.querySelector('button').addEventListener('click', ()=>{
         startChat(u);
-        if(mode==='desktop') searchInput.value=''; else m_searchInput.value='';
-        resultsContainer.innerHTML='';
+        container.innerHTML = '';
+        if(mode === 'desktop') searchInput.value = '';
+        else m_searchInput.value = '';
       });
-      resultsContainer.appendChild(item);
+      container.appendChild(item);
     });
-  });
+  }).catch(err=>console.error(err));
 }
 
-/* mobile search wiring */
-m_searchInput.addEventListener('input', ()=> searchUsers(m_searchInput.value.trim(), mobileSearchResults, 'mobile'));
-searchInput.addEventListener('input', ()=> searchUsers(searchInput.value.trim(), searchResults, 'desktop'));
+/* ----------------- CHATS LIST & UNREAD ----------------- */
+function startAppAfterLogin(){
+  // enable composer
+  privateMessageInput.disabled = false;
+  sendBtn.disabled = false;
+  // subscribe to chats
+  loadChats();
+  // subscribe notifications for incoming messages
+  subscribeIncomingNotifications();
+  // connect typing listener for incoming statuses after login
+  subscribeTypingIncoming();
+}
 
-/* ============ CHAT LIST & UNREAD ============ */
-let chatSnapshotUnsub = null;
+/* compute pairKey for chat */
+function pairKey(a,b){ const arr = [a,b].slice().sort(); return `${arr[0]}_${arr[1]}`; }
+
+/* load chat list: realtime snapshot of privateMessages, filter client-side by involvement */
 function loadChats(){
   if(!currentUser) return;
-  // realtime snapshot for all messages to compute chat list + unread counts
-  if(chatSnapshotUnsub) chatSnapshotUnsub();
-  chatSnapshotUnsub = db.collection('privateMessages').orderBy('timestamp','desc')
+  if(chatsSnapshotUnsub) chatsSnapshotUnsub();
+
+  chatsSnapshotUnsub = db.collection('privateMessages').orderBy('timestamp','desc')
     .onSnapshot(snapshot=>{
-      const lastByUser = {}; // last message per chat
+      const lastByUser = {};
       unreadCounts = {};
       snapshot.forEach(doc=>{
         const m = doc.data();
+        if(!m) return;
         if(m.from === currentUser || m.to === currentUser){
-          const other = (m.from === currentUser) ? m.to : m.from;
+          const other = m.from === currentUser ? m.to : m.from;
           if(!lastByUser[other]) lastByUser[other] = {...m, id: doc.id};
-          // unread count
-          if(m.to === currentUser && !m.read) {
-            unreadCounts[other] = (unreadCounts[other] || 0) + 1;
-          }
+          // count unread
+          if(m.to === currentUser && !m.read) unreadCounts[other] = (unreadCounts[other] || 0) + 1;
         }
       });
-
-      // render lists (desktop + mobile)
-      renderChatList(lastByUser);
-      // menu notif (if any unread anywhere)
-      const totalUnread = Object.values(unreadCounts).reduce((a,b)=>a+(b||0),0);
-      menuNotif.textContent = totalUnread>0 ? `🔴 ${totalUnread}` : '';
-    });
+      renderChatLists(lastByUser);
+      updateMenuBadge();
+    }, err => console.error(err));
 }
 
-function renderChatList(lastByUser){
-  // sort by timestamp desc
-  const users = Object.keys(lastByUser).sort((a,b)=>{
-    return (lastByUser[b].timestamp?.toDate()?.getTime()||0) - (lastByUser[a].timestamp?.toDate()?.getTime()||0);
+/* render lists on desktop and mobile */
+function renderChatLists(lastByUser){
+  const users = Object.keys(lastByUser).sort((a,b)=> {
+    const ta = lastByUser[a].timestamp ? lastByUser[a].timestamp.toDate().getTime() : 0;
+    const tb = lastByUser[b].timestamp ? lastByUser[b].timestamp.toDate().getTime() : 0;
+    return tb - ta;
   });
 
   chatListDesktop.innerHTML = '';
   chatListMobile.innerHTML = '';
+
+  if(users.length === 0){
+    chatListDesktop.innerHTML = '<div style="padding:12px;color:var(--muted)">Нет чатов. Найдите пользователя и начните диалог.</div>';
+    chatListMobile.innerHTML = chatListDesktop.innerHTML;
+    return;
+  }
 
   users.forEach(u=>{
     const last = lastByUser[u];
     const unread = unreadCounts[u] || 0;
 
     const el = document.createElement('div');
-    el.className = 'chat-item' + (u===selectedUser ? ' active' : '');
-    el.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><div class="avatar">${u.charAt(0).toUpperCase()}</div>
-      <div style="min-width:0"><div class="name">${u}</div><div class="last">${last.message || ''}</div></div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end"><div style="font-size:12px;color:var(--muted);">${last.timestamp ? formatShortTime(last.timestamp) : ''}</div>${unread?`<div class="chat-unread">${unread}</div>`:''}</div>`;
-
-    el.addEventListener('click', ()=> {
-      // set active
-      selectedUser = u;
-      document.querySelectorAll('.chat-item').forEach(node=>node.classList.remove('active'));
-      el.classList.add('active');
-      // close mobile panel if open
-      closePanelFn();
-      // open chat
-      openChat(u);
-    });
-
+    el.className = 'chat-item' + (u === selectedUser ? ' active' : '');
+    el.innerHTML = `<div class="left"><div class="avatar">${u.charAt(0).toUpperCase()}</div>
+                    <div class="meta"><div class="name">${u}</div><div class="last">${escapeHtml(last.message || '')}</div></div></div>
+                    <div style="text-align:right"><div style="font-size:12px;color:var(--muted)">${last.timestamp ? formatShortTime(last.timestamp) : ''}</div>
+                    ${unread?`<div class="unread">${unread}</div>`:''}</div>`;
+    el.addEventListener('click', ()=> { openChat(u); if(window.innerWidth <= 900){ mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none'; } });
     const el2 = el.cloneNode(true);
-    el2.addEventListener('click', ()=> { selectedUser = u; openChat(u); closePanelFn(); });
+    el2.addEventListener('click', ()=> { openChat(u); mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none'; });
 
     chatListDesktop.appendChild(el);
     chatListMobile.appendChild(el2);
   });
-
-  // when no chats
-  if(users.length===0){
-    chatListDesktop.innerHTML = '<div style="padding:12px;color:var(--muted)">Нет чатов — начните переписку через поиск</div>';
-    chatListMobile.innerHTML = chatListDesktop.innerHTML;
-  }
 }
 
-/* ============ OPEN CHAT & MARK READ ============ */
-let messagesUnsub = null;
+function updateMenuBadge(){
+  const total = Object.values(unreadCounts).reduce((a,b)=>a+(b||0),0);
+  menuBadge.textContent = total > 0 ? `🔴 ${total}` : '';
+}
+
+/* ---------------- OPEN CHAT (subscribe to pairKey) ---------------- */
 function openChat(user){
   if(!currentUser) return alert('Войдите в систему');
   selectedUser = user;
   chatTitle.textContent = user;
-  // clear messages area
-  messagesDiv.innerHTML = '<div style="padding:12px;color:var(--muted)">Загрузка...</div>';
-
-  // mark read
+  // mark read for that chat
   markMessagesRead(user);
-
-  // unsubscribe previous
+  // unsubscribe prev
   if(messagesUnsub) messagesUnsub();
 
-  // subscribe to relevant messages (both directions) ordered
-  messagesUnsub = db.collection('privateMessages')
-    .where('pairKey','in', [pairKey(currentUser, user)]) // use pairKey trick to index by chat pair
-    .orderBy('timestamp')
-    .onSnapshot(snap => {
-      // render
-      messagesDiv.innerHTML = '';
-      snap.forEach(doc => {
-        const m = doc.data();
-        const div = document.createElement('div');
-        div.className = 'msg-wrapper';
-        const bubble = document.createElement('div');
-        bubble.className = 'msg' + (m.from === currentUser ? ' mine' : '');
-        bubble.innerHTML = `${escapeHtml(m.message)}<div class="time">${formatTime(m.timestamp)}</div>`;
-        // delete button for own messages
-        if(m.from === currentUser){
-          const del = document.createElement('span'); del.className='delete'; del.textContent='🗑';
-          del.style.marginLeft='8px';
-          del.addEventListener('click', ()=> {
-            if(confirm('Удалить сообщение?')) db.collection('privateMessages').doc(doc.id).delete();
-          });
-          bubble.appendChild(del);
-        }
-        messagesDiv.appendChild(bubble);
-      });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  const pk = pairKey(currentUser, user);
+  // subscribe to messages with pairKey == pk
+  messagesUnsub = db.collection('privateMessages').where('pairKey','==', pk).orderBy('timestamp').onSnapshot(snap=>{
+    messagesDiv.innerHTML = '';
+    if(snap.empty){
+      messagesDiv.innerHTML = '<div style="padding:12px;color:var(--muted)">Нет сообщений в этом диалоге.</div>';
+      return;
+    }
+    snap.forEach(doc => {
+      const m = doc.data();
+      const b = document.createElement('div');
+      b.className = 'msg' + (m.from === currentUser ? ' mine' : '');
+      b.textContent = m.message;
+      const t = document.createElement('div'); t.className = 'time'; t.textContent = formatTime(m.timestamp);
+      b.appendChild(t);
+      // delete control for own messages
+      if(m.from === currentUser){
+        const del = document.createElement('span'); del.className = 'del'; del.textContent = '🗑';
+        del.style.marginLeft = '8px';
+        del.addEventListener('click', ()=>{
+          if(confirm('Удалить сообщение?')) db.collection('privateMessages').doc(doc.id).delete();
+        });
+        b.appendChild(del);
+      }
+      messagesDiv.appendChild(b);
     });
-
-  // stop panel notif for this user
-  unreadCounts[user] = 0;
-  renderChatListFromCurrent(); // refresh UI counts
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }, err => {
+    console.error(err);
+    messagesDiv.innerHTML = '<div style="padding:12px;color:var(--muted)">Ошибка загрузки сообщений</div>';
+  });
 }
 
-/* helper: re-render list using current DB-snapshot via loadChats() logic
-   but simpler: trigger loadChats by re-calling loadChats() or re-render from DOM state.
-   We'll just re-call loadChats to refresh. */
-function renderChatListFromCurrent(){ /* no-op: list auto-updates from snapshot */ }
-
-/* mark messages read (from `user` to currentUser) */
+/* mark messages from user -> currentUser as read */
 function markMessagesRead(user){
-  db.collection('privateMessages')
-    .where('from','==',user)
-    .where('to','==',currentUser)
-    .where('read','==',false)
-    .get()
-    .then(snap=> {
+  db.collection('privateMessages').where('from','==',user).where('to','==',currentUser).where('read','==',false)
+    .get().then(snap=>{
+      if(snap.empty) return;
       const batch = db.batch();
       snap.forEach(doc=> batch.update(db.collection('privateMessages').doc(doc.id), { read: true }));
-      if(snap.size>0) return batch.commit();
-    }).catch(console.warn);
+      return batch.commit();
+    }).catch(e=>console.error(e));
 }
 
-/* ============ PAIR KEY trick ============
-Firestore cannot query "both from==A && to==B OR from==B && to==A" easily without composite indices.
-We store and query a pairKey field: pairKey = `${min}_${max}` on each message for simple chat grouping.
-*/
-function pairKey(a,b){
-  const arr = [a,b].slice().sort();
-  return `${arr[0]}_${arr[1]}`;
-}
-
-/* send message (creates pairKey and read=false) */
-sendBtn.addEventListener('click', sendPrivate);
-privateMessageInput.addEventListener('keydown', (e)=> {
-  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendPrivate(); }
-  startTyping(); // typing indicator
+/* ---------------- SEND MESSAGE ---------------- */
+sendBtn.addEventListener('click', sendMessageHandler);
+privateMessageInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessageHandler(); }
+  notifyTypingLocal();
 });
 
-function sendPrivate(){
+function sendMessageHandler(){
   if(!currentUser) return alert('Войдите');
   if(!selectedUser) return alert('Выберите собеседника');
   const text = privateMessageInput.value.trim();
   if(!text) return;
+  const pk = pairKey(currentUser, selectedUser);
   db.collection('privateMessages').add({
     from: currentUser,
     to: selectedUser,
     message: text,
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     read: false,
-    pairKey: pairKey(currentUser, selectedUser)
-  });
-  privateMessageInput.value = '';
-  stopTyping();
+    pairKey: pk
+  }).then(()=> {
+    privateMessageInput.value = '';
+    stopTypingLocal();
+  }).catch(err=> console.error(err));
 }
 
-/* ============ TYPING INDICATOR ============
-We write a doc in typingStatus collection with id `${from}_${to}`, set typing:true/false.
-Other side listens for documents where to==currentUser && typing==true
-*/
-let typingDocId = null;
-function startTyping(){
+/* ---------------- TYPING indicator ---------------- */
+function notifyTypingLocal(){
   if(!currentUser || !selectedUser) return;
   const id = `${currentUser}_${selectedUser}`;
   typingDocId = id;
   db.collection('typingStatus').doc(id).set({ from: currentUser, to: selectedUser, typing: true, ts: firebase.firestore.FieldValue.serverTimestamp() });
   clearTimeout(localTypingTimer);
-  localTypingTimer = setTimeout(()=> stopTyping(), 1500);
+  localTypingTimer = setTimeout(()=> stopTypingLocal(), 1200);
 }
-function stopTyping(){
+function stopTypingLocal(){
   if(!typingDocId) return;
   db.collection('typingStatus').doc(typingDocId).set({ from: currentUser, to: selectedUser, typing: false, ts: firebase.firestore.FieldValue.serverTimestamp() });
   typingDocId = null;
   clearTimeout(localTypingTimer);
 }
 
-/* listen typing statuses for others typing to currentUser */
-db.collection('typingStatus').where('to','==', currentUser || '__dummy__').onSnapshot(snap=>{
-  let someoneTyping = false;
-  snap.forEach(doc=>{
-    const d = doc.data();
-    if(d.to===currentUser && d.typing && d.from===selectedUser) someoneTyping = true;
-  });
-  typingIndicator.style.display = someoneTyping ? 'block' : 'none';
-});
+/* listen for typing statuses where to == currentUser */
+function subscribeTypingIncoming(){
+  if(!currentUser) return;
+  db.collection('typingStatus').where('to','==', currentUser).onSnapshot(snap=>{
+    let someoneTyping = false;
+    snap.forEach(doc=>{
+      const d = doc.data();
+      // if the typing doc is from the currently selected user and typing==true -> show
+      if(selectedUser && d.from === selectedUser && d.typing) someoneTyping = true;
+    });
+    typingIndicator.style.display = someoneTyping ? 'block' : 'none';
+  }, err => console.error(err));
+}
 
-/* ============ NOTIFICATIONS for new incoming messages ============
-Ask permission, then show notifications when doc added to privateMessages where to==currentUser and read==false
-*/
+/* ---------------- INCOMING NOTIFICATIONS ---------------- */
 function requestNotificationPerm(){
   if(!('Notification' in window)) return;
   if(Notification.permission === 'default') Notification.requestPermission();
 }
-
-db.collection('privateMessages').orderBy('timestamp','desc').onSnapshot(snap=>{
-  snap.docChanges().forEach(change=>{
-    if(change.type === 'added'){
-      const m = change.doc.data();
-      if(m.to === currentUser && !m.read){
-        // desktop notification
-        if(Notification.permission === 'granted'){
-          new Notification(`Новое сообщение от ${m.from}`, { body: m.message, tag: `pm-${m.from}` });
+function subscribeIncomingNotifications(){
+  if(!currentUser) return;
+  // listen for added messages and show notification if to==currentUser and not read
+  db.collection('privateMessages').where('to','==', currentUser).orderBy('timestamp','desc').onSnapshot(snap=>{
+    snap.docChanges().forEach(change=>{
+      if(change.type === 'added'){
+        const m = change.doc.data();
+        if(m.to === currentUser && !m.read){
+          if(Notification.permission === 'granted'){
+            new Notification(`Новое сообщение от ${m.from}`, { body: m.message, tag: `pm-${m.from}` });
+          }
+          // update unreadCounts will be updated by loadChats snapshot
         }
-        // mark menu indicator
-        updateMenuNotif();
       }
-    }
-  });
-});
-
-function updateMenuNotif(){
-  // total unread
-  const total = Object.values(unreadCounts).reduce((a,b)=>a+(b||0),0);
-  menuNotif.textContent = total>0 ? `🔴 ${total}` : '';
+    });
+  }, err => console.error(err));
 }
 
-/* ============ Utilities ============ */
+/* ---------------- UTILITIES ---------------- */
 function formatTime(ts){
   if(!ts) return '';
   const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -594,35 +555,25 @@ function formatShortTime(ts){
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   return `${d.getDate()}.${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* ============ Start chat from search results (or new) ============ */
+/* ---------------- START CHAT from search or direct ---------------- */
 function startChat(username){
   if(!currentUser) return alert('Войдите');
   if(username === currentUser) return alert('Нельзя писать себе');
   selectedUser = username;
-  // show chat in UI and load
-  closePanelFn();
   openChat(username);
+  // close mobile panel if open
+  mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none';
 }
 
-/* Helper: subscribe to unread/last message snapshot logic performed in loadChats() above */
+/* ---------------- ensure mobile search enter ---------------- */
+m_searchInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') searchUsers(m_searchInput.value.trim(), mobileSearchResults, 'mobile'); });
 
-/* ensure Notification permission at load if logged in */
-function initAfterLogin(){
-  requestNotificationPerm();
-  loadChats();
-}
+/* ---------------- handle window resize to auto-close panel on desktop ---------------- */
+window.addEventListener('resize', ()=>{ if(window.innerWidth > 900){ mobilePanel.classList.remove('show'); overlay.classList.remove('show'); overlay.style.display='none'; } });
 
-/* On first load, request auth if not logged in already (we used explicit auth controls, not modal) */
-/* If logged in already, loadChats was called in autoLogin above */
-
-/* Ensure mobile search input wires */
-m_searchInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') searchUsers(m_searchInput.value.trim(), mobileSearchResults,'mobile'); });
-
-/* Close mobile panel if window resized to desktop */
-window.addEventListener('resize', ()=> { if(window.innerWidth>900){ overlay.classList.remove('show'); mobilePanel.classList.remove('show'); overlay.style.display='none'; }});
-
+/* ---------------- end of script ---------------- */
 </script>
 </body>
 </html>
