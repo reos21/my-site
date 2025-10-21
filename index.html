@@ -1,124 +1,183 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Общий чат</title>
-  <style>
-    body { font-family:sans-serif; margin:0; display:flex; height:100vh; }
-    #sidebar { width:200px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box; background:#f5f5f5; }
-    #chatContainer { flex:1; display:flex; flex-direction:column; padding:10px; box-sizing:border-box; }
-    #messages { flex:1 0 auto; max-height:70%; overflow-y:auto; border:1px solid #ccc; padding:10px; background:#fff; margin-bottom:10px; }
-    input, button { width:100%; box-sizing:border-box; margin-top:5px; padding:8px; font-size:16px; }
-    #message { height:60px; resize:none; }
-    .message { padding:5px 8px; margin-bottom:4px; border-radius:5px; border-bottom:1px solid #eee; position:relative; }
-    .my-message { background:#e7f3ff; }
-    .time { font-size:12px; color:#888; margin-left:5px; }
-    .delete-btn { position:absolute; right:5px; top:5px; background:none; border:none; color:red; cursor:pointer; font-size:12px; }
-    .date-separator { text-align:center; background:#f0f0f0; padding:3px; margin:5px 0; border-radius:4px; font-size:12px; color:#666; }
-    h2 { margin:0 0 10px 0; text-align:center; }
-    #goPrivate { margin-top:10px; background:#007bff; color:#fff; border:none; cursor:pointer; padding:5px; font-size:16px; width:100%; }
-    @media (max-width:600px){
-      body { flex-direction:column; }
-      #sidebar { width:100%; border-right:none; border-bottom:1px solid #ccc; }
-      #chatContainer { width:100%; flex:1; }
-      input, button { font-size:18px; padding:12px; }
-      #message { height:80px; }
-      .message { font-size:16px; padding:8px; }
-      .delete-btn { font-size:14px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Общий чат</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family:'Inter',sans-serif; margin:0; display:flex; height:100vh; background:#f0f2f5; transition:0.3s; }
+  body.dark-theme { background:#121212; color:#eee; }
+  #sidebar { width:220px; background:#fff; border-right:1px solid #ddd; display:flex; flex-direction:column; padding:15px; box-sizing:border-box; transition:0.3s; }
+  #sidebar.dark-theme { background:#1e1e1e; color:#eee; border-right:1px solid #333; }
+  #sidebar h2 { font-weight:600; margin:0 0 15px 0; }
+  #goPrivate, #themeBtn { margin-top:10px; background:#007bff; color:#fff; border:none; cursor:pointer; padding:10px; font-size:16px; border-radius:8px; transition:0.2s; }
+  #goPrivate:hover, #themeBtn:hover { background:#0056b3; }
+
+  #chatContainer { flex:1; display:flex; flex-direction:column; padding:15px; box-sizing:border-box; transition:0.3s; }
+  #messages { flex:1 0 auto; max-height:70%; overflow-y:auto; padding:10px; background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom:10px; transition:0.3s; }
+  body.dark-theme #messages { background:#1e1e1e; color:#eee; box-shadow:none; }
+  .message { padding:8px 12px; margin-bottom:8px; border-radius:12px; position:relative; transition:0.2s; }
+  .message:hover { transform:scale(1.01); }
+  .my-message { background:#d0ebff; align-self:flex-end; }
+  body.dark-theme .my-message { background:#2a2a2a; }
+  .time { font-size:12px; color:#888; margin-left:6px; }
+  body.dark-theme .time { color:#bbb; }
+  .delete-btn { position:absolute; right:8px; top:8px; background:none; border:none; color:red; cursor:pointer; font-size:12px; }
+  .date-separator { text-align:center; background:#e0e0e0; padding:3px 8px; margin:10px 0; border-radius:12px; font-size:12px; color:#555; }
+  body.dark-theme .date-separator { background:#2a2a2a; color:#aaa; }
+
+  #inputContainer { display:flex; flex-direction:column; gap:5px; }
+  input, textarea, #sendBtn { width:100%; box-sizing:border-box; }
+  #name, #regPassword { padding:10px; border-radius:8px; border:1px solid #ccc; font-size:16px; }
+  body.dark-theme #name, body.dark-theme #regPassword { border:1px solid #555; background:#2a2a2a; color:#eee; }
+  #message { padding:12px; border-radius:12px; border:1px solid #ccc; font-size:16px; resize:none; min-height:60px; }
+  body.dark-theme #message { border:1px solid #555; background:#2a2a2a; color:#eee; }
+  #sendBtn { background:#28a745; color:#fff; border:none; border-radius:12px; padding:10px; font-size:16px; cursor:pointer; transition:0.2s; }
+  #sendBtn:hover { background:#1e7e34; }
+
+  #authContainer { display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
+  #authContainer button { background:#007bff; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer; transition:0.2s; }
+  #authContainer button:hover { background:#0056b3; }
+
+  @media (max-width:700px){
+    body { flex-direction:column; }
+    #sidebar { width:100%; border-right:none; border-bottom:1px solid #ddd; flex-direction:row; justify-content:space-between; padding:10px; }
+    #chatContainer { width:100%; flex:1; padding:10px; }
+    #messages { max-height:60%; }
+    input, textarea, #sendBtn { font-size:18px; padding:12px; }
+    .message { font-size:16px; padding:10px; }
+  }
+</style>
 </head>
 <body>
 
 <div id="sidebar">
   <h2>Общий чат</h2>
   <button id="goPrivate" onclick="goPrivate()">💬 Личные сообщения</button>
+  <button id="themeBtn" onclick="toggleTheme()">🌙 Тема</button>
 </div>
 
 <div id="chatContainer">
+  <div id="authContainer">
+    <input id="name" placeholder="Ник">
+    <input id="regPassword" type="password" placeholder="Пароль">
+    <button onclick="registerUser()">Регистрация</button>
+    <button onclick="loginUser()">Вход</button>
+    <div id="currentUser"></div>
+  </div>
+
   <div id="messages"></div>
-  <input id="name" placeholder="Ваше имя">
-  <textarea id="message" placeholder="Введите сообщение"></textarea>
-  <button onclick="sendMessage()">Отправить</button>
+  <div id="inputContainer">
+    <textarea id="message" placeholder="Введите сообщение"></textarea>
+    <button id="sendBtn" onclick="sendMessage()">Отправить</button>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
-    authDomain: "reos21-f0203.firebaseapp.com",
-    projectId: "reos21-f0203",
-    storageBucket: "reos21-f0203.firebasestorage.app",
-    messagingSenderId: "221186151213",
-    appId: "1:221186151213:web:7e9f4a842298070d8ff9a4",
-    measurementId: "G-61G91NP8DR"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const messagesDiv = document.getElementById('messages');
+const firebaseConfig = {
+  apiKey:"AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
+  authDomain:"reos21-f0203.firebaseapp.com",
+  projectId:"reos21-f0203",
+  storageBucket:"reos21-f0203.firebasestorage.app",
+  messagingSenderId:"221186151213",
+  appId:"1:221186151213:web:7e9f4a842298070d8ff9a4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const messagesDiv = document.getElementById('messages');
 
-  let currentUserName = null;
+let currentUser = null;
+let darkMode = false;
 
-  function formatTime(ts){
-    if(!ts) return '';
-    const d = ts.toDate();
-    return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-  }
-
-  function formatDateHeader(date){
-    const now = new Date();
-    const d = new Date(date);
-    const diff = Math.floor((now-d)/(1000*60*60*24));
-    if(diff===0) return 'Сегодня';
-    if(diff===1) return 'Вчера';
-    return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
-  }
-
-  function sendMessage(){
-    const nameInput = document.getElementById('name').value.trim();
-    const message = document.getElementById('message').value.trim();
-    if(!message) return;
-    const name = nameInput || 'Гость';
-    currentUserName = name;
-    db.collection('commonMessages').add({
-      name,
-      message,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    document.getElementById('message').value='';
-  }
-
-  function deleteMessage(id, msgName){
-    if(msgName !== currentUserName) return alert('Можно удалять только свои сообщения');
-    if(confirm('Удалить сообщение?')) db.collection('commonMessages').doc(id).delete();
-  }
-
-  db.collection('commonMessages').orderBy('timestamp').onSnapshot(snapshot=>{
-    messagesDiv.innerHTML='';
-    let lastDate='';
-    snapshot.forEach(doc=>{
-      const msg = doc.data();
-      if(!msg.timestamp) return;
-      const dateStr = msg.timestamp.toDate().toDateString();
-      if(dateStr!==lastDate){
-        messagesDiv.innerHTML+=`<div class="date-separator">${formatDateHeader(msg.timestamp.toDate())}</div>`;
-        lastDate = dateStr;
-      }
-      const isMine = msg.name === currentUserName;
-      messagesDiv.innerHTML+=`<div class="message ${isMine?'my-message':''}">
-        <b>${msg.name}</b>: ${msg.message} <span class="time">(${formatTime(msg.timestamp)})</span>
-        ${isMine?`<button class="delete-btn" onclick="deleteMessage('${doc.id}','${msg.name}')">🗑</button>`:''}
-      </div>`;
-    });
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+// ===== Регистрация и вход =====
+function registerUser(){
+  const name = document.getElementById('name').value.trim();
+  const pwd = document.getElementById('regPassword').value.trim();
+  if(!name||!pwd) return alert("Введите ник и пароль");
+  const hash = CryptoJS.SHA256(pwd).toString();
+  db.collection('users').doc(name).get().then(doc=>{
+    if(doc.exists) return alert("Ник занят");
+    db.collection('users').doc(name).set({passwordHash:hash});
+    alert("Регистрация успешна");
   });
+}
 
-  function goPrivate(){
-    window.location.href='private.html';
+function loginUser(){
+  const name = document.getElementById('name').value.trim();
+  const pwd = document.getElementById('regPassword').value.trim();
+  if(!name||!pwd) return alert("Введите ник и пароль");
+  const hash = CryptoJS.SHA256(pwd).toString();
+  db.collection('users').doc(name).get().then(doc=>{
+    if(!doc.exists) return alert("Пользователь не найден");
+    if(doc.data().passwordHash!==hash) return alert("Неверный пароль");
+    currentUser = name;
+    localStorage.setItem("chatUser",name);
+    document.getElementById('currentUser').textContent = "Вы: "+name;
+  });
+}
+
+// ===== Автологин =====
+window.addEventListener("load",()=>{
+  const saved = localStorage.getItem("chatUser");
+  if(saved){
+    currentUser = saved;
+    document.getElementById('currentUser').textContent = "Вы: "+saved;
   }
-</script>
+});
 
+// ===== Общий чат =====
+function sendMessage(){
+  if(!currentUser) return alert("Войдите в аккаунт");
+  const msg = document.getElementById('message').value.trim();
+  if(!msg) return;
+  db.collection('commonMessages').add({
+    name: currentUser,
+    message: msg,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('message').value='';
+}
+
+function deleteMessage(id,name){
+  if(name!==currentUser) return alert("Можно удалять только свои сообщения");
+  if(confirm("Удалить сообщение?")) db.collection('commonMessages').doc(id).delete();
+}
+
+function formatTime(ts){ if(!ts) return ''; const d=ts.toDate(); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;}
+function formatDateHeader(date){ const now=new Date(); const d=new Date(date); const diff=Math.floor((now-d)/(1000*60*60*24)); if(diff===0)return "Сегодня"; if(diff===1)return "Вчера"; return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});}
+
+db.collection('commonMessages').orderBy('timestamp').onSnapshot(snapshot=>{
+  messagesDiv.innerHTML='';
+  let lastDate='';
+  snapshot.forEach(doc=>{
+    const msg=doc.data();
+    if(!msg.timestamp) return;
+    const dateStr=msg.timestamp.toDate().toDateString();
+    if(dateStr!==lastDate){
+      messagesDiv.innerHTML+=`<div class="date-separator">${formatDateHeader(msg.timestamp.toDate())}</div>`;
+      lastDate=dateStr;
+    }
+    const isMine=msg.name===currentUser;
+    messagesDiv.innerHTML+=`<div class="message ${isMine?'my-message':''}">
+      <b>${msg.name}</b>: ${msg.message} <span class="time">(${formatTime(msg.timestamp)})</span>
+      ${isMine?`<button class="delete-btn" onclick="deleteMessage('${doc.id}','${msg.name}')">🗑</button>`:''}
+    </div>`;
+  });
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+});
+
+// ===== Личные сообщения =====
+function goPrivate(){ window.location.href="private.html"; }
+
+// ===== Темная тема =====
+function toggleTheme(){
+  darkMode=!darkMode;
+  if(darkMode) document.body.classList.add("dark-theme");
+  else document.body.classList.remove("dark-theme");
+}
+</script>
 </body>
 </html>
