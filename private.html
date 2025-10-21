@@ -15,9 +15,9 @@
     .user-item:hover { background:#f0f0f0; }
     .date-separator { text-align:center; background:#f0f0f0; padding:3px; margin:5px 0; border-radius:4px; font-size:12px; color:#666; }
     .time { font-size:12px; color:#888; margin-left:5px; }
-    .delete-btn { background:none; border:none; color:red; cursor:pointer; font-size:12px; margin-left:5px; }
     h3 { margin-top:10px; margin-bottom:5px; }
     #recentChats { margin-top:10px; }
+    #goBack { margin-top:10px; background:#007bff; color:#fff; border:none; cursor:pointer; padding:5px; }
   </style>
 </head>
 <body>
@@ -36,6 +36,8 @@
 
   <h3>Последние чаты</h3>
   <div id="recentChats"></div>
+
+  <button id="goBack" onclick="goBack()">⬅ Общий чат</button>
 </div>
 
 <div id="chatContainer">
@@ -65,7 +67,7 @@ const db = firebase.firestore();
 let currentUser = null;
 let selectedUser = null;
 
-// ===== Автовход при загрузке =====
+// ===== Автовход =====
 window.addEventListener('load', () => {
   const savedUser = localStorage.getItem('chatUser');
   const lastChat = localStorage.getItem('lastChatUser');
@@ -128,35 +130,48 @@ function searchUsers(){
   });
 }
 
-// ===== Последние чаты =====
+// ===== Последние чаты (новые сообщения наверх) =====
 function loadRecentChats(){
   if(!currentUser) return;
   const listDiv = document.getElementById('recentChats');
+
   db.collection('privateMessages')
-    .where('from','==',currentUser.uid)
-    .onSnapshot(snap=>{
-      let usersSet = new Set();
-      snap.forEach(doc=>{
-        const msg = doc.data();
-        if(msg.to) usersSet.add(msg.to);
-      });
-      db.collection('privateMessages')
-        .where('to','==',currentUser.uid)
-        .onSnapshot(snap2=>{
-          snap2.forEach(doc=>{
-            const msg = doc.data();
-            if(msg.from) usersSet.add(msg.from);
-          });
-          listDiv.innerHTML='';
-          Array.from(usersSet).forEach(u=>{
-            const div = document.createElement('div');
-            div.textContent = u;
-            div.className='user-item';
-            div.onclick = ()=>{ selectedUser = u; localStorage.setItem('lastChatUser', selectedUser); loadPrivateMessages(); };
-            listDiv.appendChild(div);
-          });
-        });
+    .where('from', '==', currentUser.uid)
+    .onSnapshot(()=>updateRecentChats(listDiv));
+  db.collection('privateMessages')
+    .where('to', '==', currentUser.uid)
+    .onSnapshot(()=>updateRecentChats(listDiv));
+}
+
+function updateRecentChats(listDiv){
+  const usersSet = new Set();
+  db.collection('privateMessages').get().then(snap=>{
+    snap.forEach(doc=>{
+      const msg = doc.data();
+      if(msg.from === currentUser.uid) usersSet.add(msg.to);
+      if(msg.to === currentUser.uid) usersSet.add(msg.from);
     });
+
+    const arr = Array.from(usersSet);
+    arr.sort((a,b)=>{
+      let lastA=0, lastB=0;
+      snap.forEach(doc=>{
+        const msg=doc.data();
+        if((msg.from===currentUser.uid && msg.to===a) || (msg.from===a && msg.to===currentUser.uid)) lastA = Math.max(lastA, msg.timestamp?.toDate()?.getTime()||0);
+        if((msg.from===currentUser.uid && msg.to===b) || (msg.from===b && msg.to===currentUser.uid)) lastB = Math.max(lastB, msg.timestamp?.toDate()?.getTime()||0);
+      });
+      return lastB - lastA;
+    });
+
+    listDiv.innerHTML='';
+    arr.forEach(u=>{
+      const div = document.createElement('div');
+      div.textContent = u;
+      div.className='user-item';
+      div.onclick = ()=>{ selectedUser=u; localStorage.setItem('lastChatUser', selectedUser); loadPrivateMessages(); };
+      listDiv.appendChild(div);
+    });
+  });
 }
 
 // ===== Личный чат =====
@@ -205,6 +220,11 @@ function loadPrivateMessages(){
     });
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
+}
+
+// ===== Кнопка возврата на общий чат =====
+function goBack(){
+  window.location.href = 'index.html'; // ссылка на ваш общий чат
 }
 </script>
 
