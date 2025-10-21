@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Чат с Google-входом и датами</title>
+  <title>Простой чат с именами</title>
   <style>
     body {
       font-family: sans-serif;
@@ -42,16 +42,8 @@
       font-size: 16px;
       margin-top: 5px;
     }
-    #user-info {
+    #user-section {
       margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #user-info img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
     }
     .date-separator {
       text-align: center;
@@ -66,13 +58,10 @@
 </head>
 <body>
 
-<h2>💬 Чат с Google-входом, датами и пометкой "(вы)"</h2>
+<h2>💬 Простой чат</h2>
 
-<div id="user-info">
-  <button id="login-btn" onclick="signIn()">Войти через Google</button>
-  <button id="logout-btn" onclick="signOut()" style="display:none;">Выйти</button>
-  <span id="user-name"></span>
-  <img id="user-pic" src="" alt="" style="display:none;">
+<div id="user-section">
+  <input id="name" placeholder="Ваше имя" />
 </div>
 
 <div id="messages"></div>
@@ -82,7 +71,6 @@
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -100,57 +88,22 @@
   // Инициализация Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  const auth = firebase.auth();
 
   const messagesDiv = document.getElementById('messages');
-  const userNameEl = document.getElementById('user-name');
-  const userPicEl = document.getElementById('user-pic');
-  const loginBtn = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
 
-  let currentUser = null;
-
-  // Авторизация через Google
-  function signIn() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-  }
-
-  function signOut() {
-    auth.signOut();
-  }
-
-  // Отслеживание входа
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      currentUser = user;
-      userNameEl.textContent = user.displayName;
-      userPicEl.src = user.photoURL;
-      userPicEl.style.display = 'inline';
-      loginBtn.style.display = 'none';
-      logoutBtn.style.display = 'inline';
-    } else {
-      currentUser = null;
-      userNameEl.textContent = '';
-      userPicEl.style.display = 'none';
-      loginBtn.style.display = 'inline';
-      logoutBtn.style.display = 'none';
-    }
-  });
+  // Генерируем уникальный ID для "текущего пользователя"
+  const localUserId = localStorage.getItem('chatUserId') || Date.now().toString(36) + Math.random().toString(36).substr(2);
+  localStorage.setItem('chatUserId', localUserId);
 
   // Отправка сообщения
   function sendMessage() {
-    if (!currentUser) {
-      alert('Сначала войдите через Google!');
-      return;
-    }
-
+    const name = document.getElementById('name').value.trim() || 'Гость';
     const message = document.getElementById('message').value.trim();
     if (!message) return;
 
     db.collection('messages').add({
-      name: currentUser.displayName,
-      uid: currentUser.uid,
+      name: name,
+      uid: localUserId,
       message: message,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -160,7 +113,7 @@
 
   // Удаление сообщения
   function deleteMessage(id, uid) {
-    if (!currentUser || currentUser.uid !== uid) {
+    if (uid !== localUserId) {
       alert('Вы можете удалять только свои сообщения!');
       return;
     }
@@ -178,7 +131,7 @@
     return `${hours}:${minutes}`;
   }
 
-  // Форматирование даты ("Сегодня", "Вчера" и т.п.)
+  // Форматирование даты
   function formatDateHeader(date) {
     const now = new Date();
     const d = new Date(date);
@@ -189,7 +142,7 @@
     return d.toLocaleDateString('ru-RU', options);
   }
 
-  // Получение сообщений
+  // Получение сообщений в реальном времени
   db.collection('messages')
     .orderBy('timestamp')
     .onSnapshot(snapshot => {
@@ -199,17 +152,18 @@
       snapshot.forEach(doc => {
         const msg = doc.data();
         if (!msg.timestamp) return;
-        const time = formatTime(msg.timestamp);
+
+        const time = formatTime
+        .timestamp);
         const dateStr = msg.timestamp.toDate().toDateString();
 
-        // Новый день → добавляем заголовок
         if (dateStr !== lastDate) {
           const dateHeader = formatDateHeader(msg.timestamp.toDate());
           messagesDiv.innerHTML += `<div class="date-separator">${dateHeader}</div>`;
           lastDate = dateStr;
         }
 
-        const isMine = currentUser && currentUser.uid === msg.uid;
+        const isMine = msg.uid === localUserId;
         const nameLabel = isMine ? `${msg.name} <span style="color:#007bff;">(вы)</span>` : msg.name;
         const canDelete = isMine;
 
@@ -228,4 +182,4 @@
 </script>
 
 </body>
-</html>
+</html>(msg
