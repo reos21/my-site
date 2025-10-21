@@ -153,8 +153,7 @@
         const msg = doc.data();
         if (!msg.timestamp) return;
 
-        const time = formatTime
-        .timestamp);
+        const time = formatTime(msg.timestamp);
         const dateStr = msg.timestamp.toDate().toDateString();
 
         if (dateStr !== lastDate) {
@@ -182,4 +181,4 @@
 </script>
 
 </body>
-</html>(msg
+</html>
