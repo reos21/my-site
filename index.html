@@ -15,14 +15,16 @@
 <div id="messages"></div>
 
 <input id="name" placeholder="Ваше имя" />
-<br><br>
+
 <input id="message" placeholder="Сообщение" />
 <button onclick="sendMessage()">Отправить</button>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script&gt;
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script&gt;
 
 <script>
+  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
     authDomain: "reos21-f0203.firebaseapp.com",
@@ -33,14 +35,16 @@
     measurementId: "G-61G91NP8DR"
   };
 
+  // Инициализация Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const messagesDiv = document.getElementById('messages');
 
+  // Отправка сообщения
   function sendMessage() {
     const name = document.getElementById('name').value || 'Гость';
-    const message = document.getElementById('message').value;
-    if(!message) return;
+    const message = document.getElementById('message').value.trim();
+    if (!message) return;
 
     db.collection('messages').add({
       name: name,
@@ -51,15 +55,18 @@
     document.getElementById('message').value = '';
   }
 
-  db.collection('messages').orderBy('timestamp')
-  .onSnapshot(snapshot => {
-    messagesDiv.innerHTML = '';
-    snapshot.forEach(doc => {
-      const msg = doc.data();
-      messagesDiv.innerHTML += <b>${msg.name}:</b> ${msg.message}<br>;
+  // Получение сообщений в реальном времени
+  db.collection('messages')
+    .orderBy('timestamp')
+    .onSnapshot(snapshot => {
+      messagesDiv.innerHTML = '';
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        messagesDiv.innerHTML += `<b>${msg.name}:</b> ${msg.message}
+`;
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
 </script>
 
 </body>
