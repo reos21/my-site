@@ -7,8 +7,9 @@
     body { font-family:sans-serif; margin:0; display:flex; height:100vh; }
     #sidebar { width:200px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box; background:#f5f5f5; }
     #chatContainer { flex:1; display:flex; flex-direction:column; padding:10px; box-sizing:border-box; }
-    #messages { flex:1; overflow-y:auto; border:1px solid #ccc; padding:10px; background:#fff; }
-    input, button { width:100%; box-sizing:border-box; margin-top:5px; padding:5px; font-size:16px; }
+    #messages { flex:1 0 auto; max-height:70%; overflow-y:auto; border:1px solid #ccc; padding:10px; background:#fff; margin-bottom:10px; }
+    input, button { width:100%; box-sizing:border-box; margin-top:5px; padding:8px; font-size:16px; }
+    #message { height:60px; resize:none; }
     .message { padding:5px 8px; margin-bottom:4px; border-radius:5px; border-bottom:1px solid #eee; position:relative; }
     .my-message { background:#e7f3ff; }
     .time { font-size:12px; color:#888; margin-left:5px; }
@@ -20,7 +21,8 @@
       body { flex-direction:column; }
       #sidebar { width:100%; border-right:none; border-bottom:1px solid #ccc; }
       #chatContainer { width:100%; flex:1; }
-      input, button, #goPrivate { font-size:18px; padding:10px; }
+      input, button { font-size:18px; padding:12px; }
+      #message { height:80px; }
       .message { font-size:16px; padding:8px; }
       .delete-btn { font-size:14px; }
     }
@@ -36,7 +38,7 @@
 <div id="chatContainer">
   <div id="messages"></div>
   <input id="name" placeholder="Ваше имя">
-  <input id="message" placeholder="Сообщение">
+  <textarea id="message" placeholder="Введите сообщение"></textarea>
   <button onclick="sendMessage()">Отправить</button>
 </div>
 
