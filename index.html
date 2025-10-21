@@ -55,16 +55,16 @@
     document.getElementById('message').value = '';
   }
 
-  // Получение сообщений в реальном времени
-  db.collection('messages').orderBy('timestamp')
-    .onSnapshot(snapshot => {
-      messagesDiv.innerHTML = '';
-      snapshot.forEach(doc => {
-        const msg = doc.data();
-        messagesDiv.innerHTML += <b>${msg.name}:</b> ${msg.message}<br>;
-      });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+// Получение сообщений в реальном времени
+db.collection('messages').orderBy('timestamp')
+  .onSnapshot(snapshot => {
+    messagesDiv.innerHTML = '';
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      messagesDiv.innerHTML += <b>${msg.name}:</b> ${msg.message}<br>;
     });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
 </script>
 
 </body>
