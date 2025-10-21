@@ -56,7 +56,7 @@
       messagesDiv.innerHTML = '';
       snapshot.forEach(doc => {
         const msg = doc.data();
-        messagesDiv.innerHTML += <b>${msg.name}:</b> ${msg.message}<br>;
+        messagesDiv.innerHTML += '<b>${msg.name}:</b> ${msg.message}<br>';
       });
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
