@@ -18,6 +18,16 @@
     h3 { margin-top:10px; margin-bottom:5px; }
     #recentChats { margin-top:10px; }
     #goBack { margin-top:10px; background:#007bff; color:#fff; border:none; cursor:pointer; padding:5px; }
+    /* ===== Адаптив для мобильных ===== */
+    @media (max-width: 600px) {
+      body { flex-direction: column; }
+      #sidebar { width:100%; height:auto; border-right:none; border-bottom:1px solid #ccc; }
+      #chatContainer { width:100%; flex:1; }
+      input, button { font-size:18px; padding:10px; }
+      .user-item { font-size:18px; padding:8px; }
+      .message { font-size:16px; padding:8px; }
+      #goBack { font-size:18px; padding:10px; }
+    }
   </style>
 </head>
 <body>
@@ -130,7 +140,7 @@ function searchUsers(){
   });
 }
 
-// ===== Последние чаты (новые сообщения наверх) =====
+// ===== Последние чаты =====
 function loadRecentChats(){
   if(!currentUser) return;
   const listDiv = document.getElementById('recentChats');
@@ -219,12 +229,13 @@ function loadPrivateMessages(){
       </div>`;
     });
     chatDiv.scrollTop = chatDiv.scrollHeight;
+    document.getElementById('privateMessage').focus();
   });
 }
 
 // ===== Кнопка возврата на общий чат =====
 function goBack(){
-  window.location.href = 'index.html'; // ссылка на ваш общий чат
+  window.location.href = 'index.html'; // ссылка на общий чат
 }
 </script>
 
