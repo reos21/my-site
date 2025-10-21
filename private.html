@@ -5,8 +5,8 @@
   <title>Личные сообщения</title>
   <style>
     body { font-family:sans-serif; display:flex; margin:0; height:100vh; }
-    #users { width:220px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box; overflow-y:auto; }
-    #chat { flex:1; padding:10px; display:flex; flex-direction:column; }
+    #sidebar { width:220px; border-right:1px solid #ccc; padding:10px; box-sizing:border-box; overflow-y:auto; }
+    #chatContainer { flex:1; display:flex; flex-direction:column; padding:10px; }
     #privateChat { flex:1; border:1px solid #ccc; padding:10px; overflow-y:auto; margin-bottom:10px; }
     input, button { padding:5px; font-size:14px; width:100%; box-sizing:border-box; margin-top:5px; }
     .message { margin-bottom:5px; padding:3px 5px; border-radius:4px; }
@@ -16,27 +16,32 @@
     .date-separator { text-align:center; background:#f0f0f0; padding:3px; margin:5px 0; border-radius:4px; font-size:12px; color:#666; }
     .time { font-size:12px; color:#888; margin-left:5px; }
     .delete-btn { background:none; border:none; color:red; cursor:pointer; font-size:12px; margin-left:5px; }
+    h3 { margin-top:10px; margin-bottom:5px; }
+    #recentChats { margin-top:10px; }
   </style>
 </head>
 <body>
 
-<div id="users">
-  <h3>Регистрация/Вход</h3>
-  <input id="regUsername" placeholder="Ник" />
-  <input id="regPassword" type="password" placeholder="Пароль" />
+<div id="sidebar">
+  <h3>Регистрация / Вход</h3>
+  <input id="regUsername" placeholder="Ник">
+  <input id="regPassword" type="password" placeholder="Пароль">
   <button onclick="registerUser()">Регистрация</button>
   <button onclick="loginUser()">Вход</button>
   <div id="currentUser" style="margin-top:5px;"></div>
 
-  <h3>Пользователи</h3>
-  <input id="searchUser" placeholder="Поиск" oninput="searchUsers()" />
+  <h3>Поиск пользователей</h3>
+  <input id="searchUser" placeholder="Поиск" oninput="searchUsers()">
   <div id="userList"></div>
+
+  <h3>Последние чаты</h3>
+  <div id="recentChats"></div>
 </div>
 
-<div id="chat">
+<div id="chatContainer">
   <h3>Личный чат</h3>
   <div id="privateChat"></div>
-  <input id="privateMessage" placeholder="Сообщение" />
+  <input id="privateMessage" placeholder="Сообщение">
   <button onclick="sendPrivateMessage()">Отправить</button>
 </div>
 
@@ -60,8 +65,23 @@ const db = firebase.firestore();
 let currentUser = null;
 let selectedUser = null;
 
-// ===== Регистрация и вход =====
-function registerUser(){
+// ===== Автовход при загрузке =====
+window.addEventListener('load', () => {
+  const savedUser = localStorage.getItem('chatUser');
+  const lastChat = localStorage.getItem('lastChatUser');
+  if(savedUser) {
+    currentUser = JSON.parse(savedUser);
+    document.getElementById('currentUser').textContent = 'Вы: ' + currentUser.username;
+    loadRecentChats();
+    if(lastChat) {
+      selectedUser = lastChat;
+      loadPrivateMessages();
+    }
+  }
+});
+
+// ===== Регистрация / Вход =====
+function registerUser() {
   const username = document.getElementById('regUsername').value.trim();
   const password = document.getElementById('regPassword').value.trim();
   if(!username || !password) return alert('Введите ник и пароль');
@@ -73,7 +93,7 @@ function registerUser(){
   });
 }
 
-function loginUser(){
+function loginUser() {
   const username = document.getElementById('regUsername').value.trim();
   const password = document.getElementById('regPassword').value.trim();
   if(!username || !password) return alert('Введите ник и пароль');
@@ -82,8 +102,9 @@ function loginUser(){
     if(!doc.exists) return alert('Пользователь не найден');
     if(doc.data().passwordHash!==hash) return alert('Неверный пароль');
     currentUser = {username, uid:username};
-    document.getElementById('currentUser').textContent = 'Вы: '+username;
-    loadPrivateMessages();
+    localStorage.setItem('chatUser', JSON.stringify(currentUser));
+    document.getElementById('currentUser').textContent = 'Вы: '+currentUser.username;
+    loadRecentChats();
   });
 }
 
@@ -100,11 +121,42 @@ function searchUsers(){
         const div = document.createElement('div');
         div.textContent = uname;
         div.className='user-item';
-        div.onclick = ()=>{ selectedUser = uname; loadPrivateMessages(); };
+        div.onclick = ()=>{ selectedUser = uname; localStorage.setItem('lastChatUser', selectedUser); loadPrivateMessages(); };
         list.appendChild(div);
       }
     });
   });
+}
+
+// ===== Последние чаты =====
+function loadRecentChats(){
+  if(!currentUser) return;
+  const listDiv = document.getElementById('recentChats');
+  db.collection('privateMessages')
+    .where('from','==',currentUser.uid)
+    .onSnapshot(snap=>{
+      let usersSet = new Set();
+      snap.forEach(doc=>{
+        const msg = doc.data();
+        if(msg.to) usersSet.add(msg.to);
+      });
+      db.collection('privateMessages')
+        .where('to','==',currentUser.uid)
+        .onSnapshot(snap2=>{
+          snap2.forEach(doc=>{
+            const msg = doc.data();
+            if(msg.from) usersSet.add(msg.from);
+          });
+          listDiv.innerHTML='';
+          Array.from(usersSet).forEach(u=>{
+            const div = document.createElement('div');
+            div.textContent = u;
+            div.className='user-item';
+            div.onclick = ()=>{ selectedUser = u; localStorage.setItem('lastChatUser', selectedUser); loadPrivateMessages(); };
+            listDiv.appendChild(div);
+          });
+        });
+    });
 }
 
 // ===== Личный чат =====
@@ -147,21 +199,12 @@ function loadPrivateMessages(){
 
       const isMine = msg.from===currentUser.uid;
       const nameLabel = isMine?`${currentUser.username} (вы)`:selectedUser;
-      const canDelete = isMine;
       chatDiv.innerHTML += `<div class="message ${isMine?'my-message':''}">
         <b>${nameLabel}</b>: ${msg.message} <span class="time">(${formatTime(msg.timestamp)})</span>
-        ${canDelete?`<button class="delete-btn" onclick="deletePrivateMessage('${doc.id}','${msg.from}')">🗑</button>`:''}
       </div>`;
     });
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
-}
-
-function deletePrivateMessage(id, uid){
-  if(currentUser.uid!==uid) return alert('Можно удалять только свои сообщения');
-  if(confirm('Удалить сообщение?')){
-    db.collection('privateMessages').doc(id).delete();
-  }
 }
 </script>
 
