@@ -6,14 +6,14 @@
 <title>Личные сообщения</title>
 <style>
   * { box-sizing: border-box; }
-  body, html {
+  html, body {
     margin: 0; padding: 0;
     height: 100%;
     font-family: sans-serif;
     background: #f5f7fa;
-    overflow: hidden;
   }
 
+  /* HEADER */
   #header {
     background: #007bff;
     color: #fff;
@@ -22,7 +22,6 @@
     position: relative;
     font-weight: bold;
   }
-
   #backBtn, #chatToggle {
     position: absolute;
     top: 8px;
@@ -35,12 +34,12 @@
     font-weight: 600;
   }
   #backBtn { left: 10px; }
-  #chatToggle { right: 10px; z-index: 10; }
+  #chatToggle { right: 10px; }
 
+  /* MAIN */
   #main {
     display: flex;
     height: calc(100vh - 50px);
-    position: relative;
     overflow: hidden;
   }
 
@@ -75,7 +74,6 @@
     flex-direction: column;
     background: #fdfdfd;
     height: 100%;
-    position: relative;
   }
 
   #messages {
@@ -84,7 +82,6 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
-    height: calc(100% - 70px);
   }
 
   .msg {
@@ -110,10 +107,7 @@
     padding: 10px;
     border-top: 1px solid #ddd;
     background: #fff;
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
   }
-
   #messageInput {
     flex: 1;
     padding: 10px;
@@ -121,7 +115,6 @@
     border: 1px solid #ccc;
     border-radius: 8px;
   }
-
   #sendBtn {
     margin-left: 10px;
     padding: 10px 14px;
@@ -145,7 +138,6 @@
       background: #fff;
     }
     #chatList.active { transform: translateX(0); }
-    #main { flex-direction: column; }
   }
 </style>
 </head>
@@ -189,9 +181,11 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  // === Пользователь ===
   let currentUser = localStorage.getItem("chatUser");
   try {
-    currentUser = JSON.parse(currentUser).username || "Гость";
+    const parsed = JSON.parse(currentUser);
+    currentUser = parsed.username || parsed.uid || "Гость";
   } catch { currentUser = "Гость"; }
 
   const messagesDiv = document.getElementById("messages");
@@ -204,6 +198,7 @@
     document.getElementById("chatList").classList.toggle("active");
   }
 
+  // === Поиск пользователей ===
   function searchUsers() {
     const q = document.getElementById("searchUser").value.toLowerCase();
     chatUsersDiv.innerHTML = "<i>Загрузка...</i>";
@@ -234,6 +229,7 @@
     return `${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
   }
 
+  // === Загрузка сообщений ===
   function loadMessages() {
     if (unsubscribe) unsubscribe();
     if (!selectedUser) {
@@ -263,6 +259,7 @@
       });
   }
 
+  // === Отправка ===
   function sendMessage() {
     const text = messageInput.value.trim();
     if (!text || !selectedUser) return;
