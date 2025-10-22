@@ -5,190 +5,227 @@
 <title>Личные сообщения</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body, html { margin:0; padding:0; font-family:sans-serif; height:100%; overflow:hidden; background:#fafafa;}
-  #container { display:flex; flex-direction:column; height:100%; }
-  #header { background:#007bff; color:#fff; padding:10px; text-align:center; position:relative; }
-  #backBtn { position:absolute; left:10px; top:10px; background:#fff; color:#007bff; border:none; padding:5px 10px; cursor:pointer; border-radius:4px; }
-  #main { flex:1; display:flex; overflow:hidden; }
-  #chatList { width:200px; border-right:1px solid #ccc; background:#fff; overflow-y:auto; display:flex; flex-direction:column; transition: transform 0.3s ease; }
-  #chatList.hidden { transform: translateX(-100%); }
-  #chatList input { margin:5px; padding:5px; }
-  .user-item { padding:8px; border-bottom:1px solid #eee; cursor:pointer; }
-  .user-item:hover { background:#f0f0f0; }
-  #chatContent { flex:1; display:flex; flex-direction:column; height:100%; }
-  #messages { flex:1; overflow-y:auto; padding:10px; background:#fff; }
-  .message { margin-bottom:5px; padding:5px 8px; border-radius:5px; border-bottom:1px solid #eee; }
-  .my-message { background:#e7f3ff; }
-  .time { font-size:12px; color:#888; margin-left:5px; }
-  #inputArea { display:flex; padding:5px; background:#fff; border-top:1px solid #ccc; }
-  #privateMessage { flex:1; padding:8px; font-size:14px; }
-  #sendBtn { padding:8px 12px; margin-left:5px; background:#007bff; color:#fff; border:none; cursor:pointer; border-radius:4px; }
-  #toggleList { display:none; position:absolute; left:10px; bottom:10px; background:#007bff; color:#fff; border:none; padding:5px 10px; border-radius:4px; z-index:10; }
-  @media(max-width:700px){
-    #chatList { position:absolute; top:0; left:0; height:100%; z-index:5; background:#fff; transform:translateX(-100%);}
-    #toggleList { display:block; }
+  body, html {
+    margin:0; padding:0; font-family:sans-serif;
+    height:100%; overflow:hidden; background:#f5f7fa;
   }
+
+  #container { display:flex; flex-direction:column; height:100vh; }
+
+  #header {
+    background:#007bff; color:white; padding:10px;
+    text-align:center; font-weight:bold; position:relative;
+  }
+
+  #backBtn {
+    position:absolute; left:10px; top:8px;
+    background:white; color:#007bff; border:none;
+    border-radius:5px; padding:6px 10px;
+    cursor:pointer; font-weight:600;
+  }
+
+  #chatToggle {
+    position:absolute; right:10px; top:8px;
+    background:white; color:#007bff; border:none;
+    border-radius:5px; padding:6px 10px;
+    cursor:pointer; font-weight:600; z-index:10;
+  }
+
+  #main {
+    flex:1; display:flex; overflow:hidden; height:100%;
+    position:relative;
+  }
+
+  /* Панель чатов */
+  #chatList {
+    width:260px; background:#fff; border-right:1px solid #ddd;
+    padding:10px; box-sizing:border-box; overflow-y:auto;
+    transition:transform 0.3s ease;
+  }
+
+  /* Для мобильных */
+  @media (max-width: 768px) {
+    #chatList {
+      position:absolute; left:0; top:0; bottom:0;
+      z-index:100; transform:translateX(-100%);
+      box-shadow:2px 0 5px rgba(0,0,0,0.1);
+    }
+    #chatList.active { transform:translateX(0); }
+  }
+
+  #searchUser { width:100%; padding:8px; margin-bottom:8px; font-size:15px; box-sizing:border-box; }
+  .chat-item {
+    padding:10px; border-bottom:1px solid #eee;
+    cursor:pointer; border-radius:5px;
+  }
+  .chat-item:hover { background:#f0f4ff; }
+  .chat-item.active { background:#e3f0ff; font-weight:bold; }
+
+  /* Чат */
+  #chatArea {
+    flex:1; display:flex; flex-direction:column;
+    background:#fdfdfd; position:relative;
+  }
+  #messages {
+    flex:1; overflow-y:auto; padding:10px;
+  }
+  .msg { margin:5px 0; padding:8px 10px; border-radius:10px; max-width:75%; }
+  .mine { background:#d8ecff; align-self:flex-end; }
+  .theirs { background:#eee; align-self:flex-start; }
+  .time { display:block; font-size:12px; color:#666; margin-top:3px; text-align:right; }
+
+  #inputArea {
+    display:flex; padding:10px; border-top:1px solid #ddd;
+    background:#fff;
+  }
+  #messageInput {
+    flex:1; padding:10px; font-size:16px;
+    border:1px solid #ccc; border-radius:8px;
+  }
+  #sendBtn {
+    margin-left:10px; padding:10px 14px;
+    background:#007bff; color:white; border:none;
+    border-radius:8px; cursor:pointer; font-weight:600;
+  }
+
 </style>
 </head>
 <body>
+
 <div id="container">
   <div id="header">
-    <button id="backBtn" onclick="goToCommonChat()">⬅ Общий чат</button>
+    <button id="backBtn" onclick="window.location.href='index.html'">← Общий чат</button>
     Личные сообщения
-    <button id="toggleList" onclick="toggleChatList()">Чаты</button>
+    <button id="chatToggle" onclick="toggleChatList()">Чаты</button>
   </div>
+
   <div id="main">
     <div id="chatList">
-      <input id="searchUser" placeholder="Поиск пользователя" oninput="searchUsers()">
-      <div id="userList"></div>
+      <input id="searchUser" placeholder="Поиск пользователей..." oninput="searchUsers()" />
+      <div id="chatUsers"></div>
     </div>
-    <div id="chatContent">
-      <div id="messages">Выберите чат</div>
+
+    <div id="chatArea">
+      <div id="messages"><i>Выберите чат</i></div>
       <div id="inputArea">
-        <input id="privateMessage" placeholder="Введите сообщение">
-        <button id="sendBtn" onclick="sendPrivateMessage()">Отправить</button>
+        <input id="messageInput" placeholder="Введите сообщение..." />
+        <button id="sendBtn" onclick="sendMessage()">➤</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <script>
-const firebaseConfig = {
+  const firebaseConfig = {
     apiKey: "AIzaSyA5meIzTc-zrp3mV2Xg7QQ8Vf_brx58T-g",
     authDomain: "reos21-f0203.firebaseapp.com",
     projectId: "reos21-f0203",
     storageBucket: "reos21-f0203.firebasestorage.app",
     messagingSenderId: "221186151213",
-    appId: "1:221186151213:web:7e9f4a842298070d8ff9a4"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    appId: "1:221186151213:web:7e9f4a842298070d8ff9a4",
+    measurementId: "G-61G91NP8DR"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-let currentUser = null;
-let selectedUser = null;
-let messagesUnsub = null;
+  let currentUser = localStorage.getItem("chatUser");
+  try {
+    if (currentUser) {
+      const parsed = JSON.parse(currentUser);
+      currentUser = parsed.uid || parsed.username || currentUser;
+    }
+  } catch(e){}
 
-// ==== Вход и регистрация (локальные данные) ====
-function loginUser(username){
-  if(!username) return;
-  currentUser = username;
-  localStorage.setItem('chatUser', currentUser);
-  loadChats();
-}
+  const messagesDiv = document.getElementById("messages");
+  const chatUsersDiv = document.getElementById("chatUsers");
+  const messageInput = document.getElementById("messageInput");
+  let selectedUser = null;
+  let unsubscribe = null;
 
-// ==== Загрузка списка чатов ====
-function loadChats(){
-  db.collection('privateMessages').get().then(snap=>{
-    const users = new Set();
-    snap.forEach(doc=>{
-      const msg = doc.data();
-      if(msg.from===currentUser) users.add(msg.to);
-      if(msg.to===currentUser) users.add(msg.from);
-    });
-    renderUserList([...users]);
-  });
-}
+  function toggleChatList() {
+    const list = document.getElementById('chatList');
+    list.classList.toggle('active');
+  }
 
-function renderUserList(users){
-  const ul = document.getElementById('userList');
-  ul.innerHTML='';
-  users.forEach(u=>{
-    const div = document.createElement('div');
-    div.textContent=u;
-    div.className='user-item';
-    div.onclick=()=>{ selectUser(u); };
-    ul.appendChild(div);
-  });
-}
-
-// ==== Поиск пользователей ====
-function searchUsers(){
-  const q = document.getElementById('searchUser').value.trim().toLowerCase();
-  db.collection('users').get().then(snap=>{
-    const ul = document.getElementById('userList');
-    ul.innerHTML='';
-    snap.forEach(doc=>{
-      const uname = doc.id;
-      if(uname.toLowerCase().includes(q) && uname!==currentUser){
-        const div = document.createElement('div');
-        div.textContent=uname;
-        div.className='user-item';
-        div.onclick=()=>{ selectUser(uname); };
-        ul.appendChild(div);
-      }
-    });
-  });
-}
-
-// ==== Выбор пользователя ====
-function selectUser(user){
-  selectedUser = user;
-  document.getElementById('messages').innerHTML='Загрузка...';
-  if(messagesUnsub) messagesUnsub();
-  loadPrivateMessages();
-  if(window.innerWidth<700) document.getElementById('chatList').classList.add('hidden');
-}
-
-// ==== Загрузка сообщений ====
-function pairKey(u1,u2){ return [u1,u2].sort().join('_'); }
-function formatTime(ts){ const d=ts.toDate(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
-
-function loadPrivateMessages(){
-  if(!currentUser || !selectedUser) return;
-  const pk = pairKey(currentUser, selectedUser);
-  messagesUnsub = db.collection('privateMessages')
-    .orderBy('timestamp')
-    .onSnapshot(snap=>{
-      const messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML='';
+  // 📥 Загрузка списка пользователей
+  function searchUsers(){
+    const q = document.getElementById('searchUser').value.toLowerCase();
+    chatUsersDiv.innerHTML = '<i>Загрузка...</i>';
+    db.collection('users').get().then(snap=>{
+      chatUsersDiv.innerHTML = '';
       snap.forEach(doc=>{
-        const msg = doc.data();
-        if(!msg.timestamp) return;
-        if(msg.pairKey!==pk && !(msg.from===currentUser && msg.to===selectedUser) && !(msg.from===selectedUser && msg.to===currentUser)) return;
-        const isMine = msg.from===currentUser;
-        messagesDiv.innerHTML+=`<div class="message ${isMine?'my-message':''}"><b>${isMine?'Вы':msg.from}</b>: ${msg.message} <span class="time">(${formatTime(msg.timestamp)})</span></div>`;
+        const uname = doc.id;
+        if(uname !== currentUser && uname.toLowerCase().includes(q)){
+          const div = document.createElement('div');
+          div.className = 'chat-item';
+          div.textContent = uname;
+          div.onclick = ()=>selectChat(uname);
+          chatUsersDiv.appendChild(div);
+        }
       });
-      messagesDiv.scrollTop=messagesDiv.scrollHeight;
     });
-}
+  }
 
-// ==== Отправка сообщений ====
-function sendPrivateMessage(){
-  if(!currentUser || !selectedUser) return alert('Выберите чат');
-  const msg = document.getElementById('privateMessage').value.trim();
-  if(!msg) return;
-  const pk = pairKey(currentUser, selectedUser);
-  db.collection('privateMessages').add({
-    from: currentUser,
-    to: selectedUser,
-    message: msg,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    pairKey: pk,
-    read: false
-  });
-  document.getElementById('privateMessage').value='';
-}
+  function selectChat(user){
+    selectedUser = user;
+    document.getElementById('chatList').classList.remove('active');
+    loadMessages();
+  }
 
-// ==== Плавное скрытие/показ списка чатов на телефоне ====
-function toggleChatList(){
-  const list = document.getElementById('chatList');
-  list.classList.toggle('hidden');
-}
+  function formatTime(ts){
+    if(!ts) return '';
+    const d = ts.toDate();
+    return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  }
 
-// ==== Кнопка назад в общий чат ====
-function goToCommonChat(){
-  window.location.href='index.html';
-}
+  // 📩 Загрузка сообщений
+  function loadMessages(){
+    if(unsubscribe) unsubscribe();
+    if(!currentUser || !selectedUser){
+      messagesDiv.innerHTML = '<i>Выберите чат</i>';
+      return;
+    }
+    messagesDiv.innerHTML = '<i>Загрузка сообщений...</i>';
+    unsubscribe = db.collection('privateMessages')
+      .where('participants','array-contains', currentUser)
+      .orderBy('timestamp')
+      .onSnapshot(snap=>{
+        messagesDiv.innerHTML = '';
+        snap.forEach(doc=>{
+          const msg = doc.data();
+          if(!msg.timestamp) return;
+          if(!msg.participants.includes(selectedUser)) return;
+          const div = document.createElement('div');
+          div.className = 'msg ' + (msg.from===currentUser?'mine':'theirs');
+          div.innerHTML = `${msg.message}<span class="time">${formatTime(msg.timestamp)}</span>`;
+          messagesDiv.appendChild(div);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }, err=>{
+        messagesDiv.innerHTML = `<span style="color:red;">Ошибка загрузки сообщений</span>`;
+        console.error(err);
+      });
+  }
 
-// ==== Инициализация текущего пользователя ====
-window.onload=function(){
-  let u = localStorage.getItem('chatUser');
-  if(u) loginUser(u);
-}
+  // ✉️ Отправка
+  function sendMessage(){
+    const text = messageInput.value.trim();
+    if(!text || !selectedUser) return;
+    db.collection('privateMessages').add({
+      from: currentUser,
+      to: selectedUser,
+      participants: [currentUser, selectedUser],
+      message: text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    messageInput.value = '';
+  }
+
+  searchUsers();
 </script>
 </body>
 </html>
