@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Рулетка</title>
-
 <style>
 body {
     margin: 0;
@@ -15,15 +14,12 @@ body {
     align-items: center;
     height: 100vh;
 }
-
 .container {
     text-align: center;
 }
-
 h1 {
     margin-bottom: 20px;
 }
-
 .roulette {
     width: 500px;
     height: 120px;
@@ -33,12 +29,10 @@ h1 {
     position: relative;
     margin-bottom: 20px;
 }
-
 .items {
     display: flex;
     height: 100%;
 }
-
 .item {
     min-width: 100px;
     display: flex;
@@ -47,7 +41,6 @@ h1 {
     font-size: 18px;
     border-right: 1px solid #1e293b;
 }
-
 .roulette::after {
     content: "";
     position: absolute;
@@ -58,7 +51,6 @@ h1 {
     background: red;
     transform: translateX(-50%);
 }
-
 button {
     padding: 10px 25px;
     font-size: 18px;
@@ -67,28 +59,29 @@ button {
     border: none;
     border-radius: 6px;
 }
-
 button:disabled {
     background: gray;
 }
-
 .result {
     margin-top: 15px;
     font-size: 20px;
 }
+.counter {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #a5f3fc;
+}
 </style>
 </head>
-
 <body>
 <div class="container">
     <h1>Что РКН заблокирует следующим?</h1>
-
     <div class="roulette">
         <div class="items" id="items"></div>
     </div>
-
     <button id="spin">Крутить</button>
     <div class="result" id="result"></div>
+    <div class="counter" id="counter">Количество кручений: 0</div>
 </div>
 
 <script>
@@ -96,10 +89,13 @@ const baseItems = ["max", "vk", "telegram", "sberbank", "tbank"];
 const items = document.getElementById("items");
 const spinBtn = document.getElementById("spin");
 const result = document.getElementById("result");
+const counterDiv = document.getElementById("counter");
 
 const ITEM_WIDTH = 100;
 const REPEAT = 20;
+let spinCount = 0;
 
+// Заполняем рулетку
 function fill() {
     items.innerHTML = "";
     for (let i = 0; i < REPEAT; i++) {
@@ -118,14 +114,12 @@ spinBtn.onclick = () => {
     spinBtn.disabled = true;
     result.textContent = "";
 
-    // сброс позиции
+    // Сброс позиции для повторного спина
     items.style.transition = "none";
     items.style.transform = "translateX(0)";
 
-    // даём браузеру применить сброс
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-
             const winIndex = Math.floor(Math.random() * baseItems.length);
 
             const centerOffset = 250 - ITEM_WIDTH / 2;
@@ -137,9 +131,13 @@ spinBtn.onclick = () => {
 
             setTimeout(() => {
                 result.textContent = "Выпало: " + baseItems[winIndex];
+
+                // Увеличиваем счетчик
+                spinCount++;
+                counterDiv.textContent = "Количество кручений: " + spinCount;
+
                 spinBtn.disabled = false;
             }, 4000);
-
         });
     });
 };
