@@ -20,6 +20,12 @@ body {
     text-align: center;
 }
 
+h1 {
+    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: bold;
+}
+
 .roulette {
     width: 500px;
     height: 120px;
@@ -80,6 +86,8 @@ button:disabled {
 
 <body>
 <div class="container">
+    <h1>Что РКН заблокирует следующим?</h1>
+
     <div class="roulette">
         <div class="items" id="items"></div>
     </div>
@@ -94,7 +102,6 @@ const itemsContainer = document.getElementById("items");
 const spinBtn = document.getElementById("spin");
 const result = document.getElementById("result");
 
-// наполняем рулетку (много раз для эффекта прокрутки)
 function fillItems() {
     itemsContainer.innerHTML = "";
     for (let i = 0; i < 20; i++) {
