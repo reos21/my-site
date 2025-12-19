@@ -34,12 +34,13 @@ h1 {
     height: 100%;
 }
 .item {
-    min-width: 100px;
+    width: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px;
     border-right: 1px solid #1e293b;
+    flex-shrink: 0;
 }
 .roulette::after {
     content: "";
@@ -79,58 +80,76 @@ button:disabled {
 </div>
 
 <script>
-const baseItems = ["max", "vk", "telegram", "sberbank", "tbank"];
+const itemsArray = ["max", "vk", "telegram", "sberbank", "tbank"];
 const itemsContainer = document.getElementById("items");
 const spinBtn = document.getElementById("spin");
-const result = document.getElementById("result");
+const resultDiv = document.getElementById("result");
 
 const ITEM_WIDTH = 100; // ширина одного элемента
-const VISIBLE_WIDTH = 500; // ширина рулетки
-const REPEAT = 50; // сколько повторов для плавной прокрутки
+const VISIBLE_ITEMS = 5; // сколько видно
+const PADDING = Math.floor(VISIBLE_ITEMS / 2); // сколько пустых блоков слева
 
-// Заполняем рулетку
-function fillItems() {
+function createItems(winItem) {
     itemsContainer.innerHTML = "";
-    for (let i = 0; i < REPEAT; i++) {
-        baseItems.forEach(text => {
-            const div = document.createElement("div");
-            div.className = "item";
-            div.textContent = text;
-            itemsContainer.appendChild(div);
-        });
+    // пустые слоты слева
+    for (let i = 0; i < PADDING; i++) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = "";
+        itemsContainer.appendChild(div);
+    }
+    // случайные элементы перед выигрышем
+    for (let i = 0; i < 10; i++) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = itemsArray[Math.floor(Math.random()*itemsArray.length)];
+        itemsContainer.appendChild(div);
+    }
+    // выигрышный элемент
+    const divWin = document.createElement("div");
+    divWin.className = "item";
+    divWin.textContent = winItem;
+    itemsContainer.appendChild(divWin);
+
+    // случайные элементы после
+    for (let i = 0; i < 10; i++) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = itemsArray[Math.floor(Math.random()*itemsArray.length)];
+        itemsContainer.appendChild(div);
+    }
+    // пустые слоты справа
+    for (let i = 0; i < PADDING; i++) {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = "";
+        itemsContainer.appendChild(div);
     }
 }
 
-fillItems();
-
 spinBtn.onclick = () => {
     spinBtn.disabled = true;
-    result.textContent = "";
+    resultDiv.textContent = "";
 
-    // Сбрасываем трансформацию для нового спина
+    // выберем выигрышный предмет
+    const winItem = itemsArray[Math.floor(Math.random() * itemsArray.length)];
+
+    createItems(winItem);
+
+    // сброс позиции
     itemsContainer.style.transition = "none";
     itemsContainer.style.transform = "translateX(0)";
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            // Выбираем случайный предмет
-            const winItemIndex = Math.floor(Math.random() * baseItems.length);
+            // вычисляем offset так, чтобы выигрышный элемент оказался в центре
+            const offset = (10 + PADDING) * ITEM_WIDTH - Math.floor(500/2 - ITEM_WIDTH/2);
 
-            // Центр рулетки
-            const centerPos = VISIBLE_WIDTH / 2 - ITEM_WIDTH / 2;
-
-            // Вычисляем точный индекс элемента, который окажется в центре
-            const stopIndex = (REPEAT - 1) * baseItems.length + winItemIndex;
-
-            const offset = stopIndex * ITEM_WIDTH - centerPos;
-
-            // Анимируем прокрутку
             itemsContainer.style.transition = "transform 4s cubic-bezier(.08,.6,0,1)";
             itemsContainer.style.transform = `translateX(-${offset}px)`;
 
-            // После анимации показываем результат
             setTimeout(() => {
-                result.textContent = "Выпало: " + baseItems[winItemIndex];
+                resultDiv.textContent = "Выпало: " + winItem;
                 spinBtn.disabled = false;
             }, 4000);
         });
