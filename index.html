@@ -66,11 +66,6 @@ button:disabled {
     margin-top: 15px;
     font-size: 20px;
 }
-.counter {
-    margin-top: 10px;
-    font-size: 18px;
-    color: #a5f3fc;
-}
 </style>
 </head>
 <body>
@@ -81,61 +76,61 @@ button:disabled {
     </div>
     <button id="spin">Крутить</button>
     <div class="result" id="result"></div>
-    <div class="counter" id="counter">Количество кручений: 0</div>
 </div>
 
 <script>
 const baseItems = ["max", "vk", "telegram", "sberbank", "tbank"];
-const items = document.getElementById("items");
+const itemsContainer = document.getElementById("items");
 const spinBtn = document.getElementById("spin");
 const result = document.getElementById("result");
-const counterDiv = document.getElementById("counter");
 
-const ITEM_WIDTH = 100;
-const REPEAT = 20;
-let spinCount = 0;
+const ITEM_WIDTH = 100; // ширина одного элемента
+const VISIBLE_WIDTH = 500; // ширина рулетки
+const REPEAT = 50; // сколько повторов для плавной прокрутки
 
 // Заполняем рулетку
-function fill() {
-    items.innerHTML = "";
+function fillItems() {
+    itemsContainer.innerHTML = "";
     for (let i = 0; i < REPEAT; i++) {
         baseItems.forEach(text => {
             const div = document.createElement("div");
             div.className = "item";
             div.textContent = text;
-            items.appendChild(div);
+            itemsContainer.appendChild(div);
         });
     }
 }
 
-fill();
+fillItems();
 
 spinBtn.onclick = () => {
     spinBtn.disabled = true;
     result.textContent = "";
 
-    // Сброс позиции для повторного спина
-    items.style.transition = "none";
-    items.style.transform = "translateX(0)";
+    // Сбрасываем трансформацию для нового спина
+    itemsContainer.style.transition = "none";
+    itemsContainer.style.transform = "translateX(0)";
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            const winIndex = Math.floor(Math.random() * baseItems.length);
+            // Выбираем случайный предмет
+            const winItemIndex = Math.floor(Math.random() * baseItems.length);
 
-            const centerOffset = 250 - ITEM_WIDTH / 2;
-            const stopIndex = (REPEAT - 1) * baseItems.length + winIndex;
-            const offset = stopIndex * ITEM_WIDTH - centerOffset;
+            // Центр рулетки
+            const centerPos = VISIBLE_WIDTH / 2 - ITEM_WIDTH / 2;
 
-            items.style.transition = "transform 4s cubic-bezier(.08,.6,0,1)";
-            items.style.transform = `translateX(-${offset}px)`;
+            // Вычисляем точный индекс элемента, который окажется в центре
+            const stopIndex = (REPEAT - 1) * baseItems.length + winItemIndex;
 
+            const offset = stopIndex * ITEM_WIDTH - centerPos;
+
+            // Анимируем прокрутку
+            itemsContainer.style.transition = "transform 4s cubic-bezier(.08,.6,0,1)";
+            itemsContainer.style.transform = `translateX(-${offset}px)`;
+
+            // После анимации показываем результат
             setTimeout(() => {
-                result.textContent = "Выпало: " + baseItems[winIndex];
-
-                // Увеличиваем счетчик
-                spinCount++;
-                counterDiv.textContent = "Количество кручений: " + spinCount;
-
+                result.textContent = "Выпало: " + baseItems[winItemIndex];
                 spinBtn.disabled = false;
             }, 4000);
         });
