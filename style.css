@@ -1,3 +1,4 @@
+/* ========== GLOBAL STYLES ========== */
 * {
     margin: 0;
     padding: 0;
@@ -6,55 +7,95 @@
 }
 
 body {
-    background: #f4f4f4;
+    background: #fafafa;
+    color: #333;
+    line-height: 1.6;
 }
 
 header {
-    background: #000;
-    color: #fff;
-    padding: 20px;
     text-align: center;
+    background: #fff;
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+h1 {
+    font-size: 2rem;
+    color: #111;
 }
 
 h2 {
+    margin: 1rem 0;
+    font-size: 1.6rem;
+    color: #222;
     text-align: center;
-    margin: 40px 0 20px;
 }
 
-.grid {
+/* ========== PRODUCTS GRID ========== */
+.products-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 1.5rem auto;
+}
+
+.brand-section {
+    margin-bottom: 3rem;
+}
+
+.products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.4rem;
 }
 
-.card {
+/* ========== PRODUCT CARD ========== */
+.product-card {
     background: #fff;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(40px);
+    opacity: 0;
+    transition: 0.4s ease-out;
 }
 
-.card img {
+.product-card img {
     width: 100%;
-    height: 320px;
+    height: 180px;
     object-fit: cover;
-    display: block;
 }
 
-.card p {
-    padding: 10px;
+.product-card h3 {
+    font-size: 1.2rem;
+    margin: 0.7rem;
+}
+
+.product-card .brand {
+    font-size: 0.9rem;
+    margin: 0 0.7rem;
+    color: #777;
+}
+
+.product-card .price {
+    margin: 0.7rem;
     font-weight: bold;
+    color: #000;
 }
 
-footer {
-    text-align: center;
-    padding: 20px;
-    color: #666;
+/* ========== HOVER EFFECTS ========== */
+.product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* ========== SCROLL APPEAR ========== */
+.product-card.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* ========== RESPONSIVE ========== */
+@media screen and (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.3rem; }
 }
