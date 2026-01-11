@@ -1,101 +1,81 @@
-/* ========== GLOBAL STYLES ========== */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, Arial, sans-serif;
 }
 
 body {
-    background: #fafafa;
-    color: #333;
-    line-height: 1.6;
+  background: #f8f8f8;
+  color: #111;
 }
 
 header {
-    text-align: center;
-    background: #fff;
-    padding: 2rem;
-    border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 40px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
 }
 
-h1 {
-    font-size: 2rem;
-    color: #111;
+header h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+  font-weight: 500;
 }
 
-h2 {
-    margin: 1rem 0;
-    font-size: 1.6rem;
-    color: #222;
-    text-align: center;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
-/* ========== PRODUCTS GRID ========== */
-.products-container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 1.5rem auto;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
 }
 
-.brand-section {
-    margin-bottom: 3rem;
+.card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  transition: 0.4s ease;
+  transform: translateY(40px);
+  opacity: 0;
 }
 
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.4rem;
+.card.visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
-/* ========== PRODUCT CARD ========== */
-.product-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transform: translateY(40px);
-    opacity: 0;
-    transition: 0.4s ease-out;
+.card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
 }
 
-.product-card img {
-    width: 100%;
+.card img {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.card h3 {
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 24px;
+  }
+
+  .card img {
     height: 180px;
-    object-fit: cover;
-}
-
-.product-card h3 {
-    font-size: 1.2rem;
-    margin: 0.7rem;
-}
-
-.product-card .brand {
-    font-size: 0.9rem;
-    margin: 0 0.7rem;
-    color: #777;
-}
-
-.product-card .price {
-    margin: 0.7rem;
-    font-weight: bold;
-    color: #000;
-}
-
-/* ========== HOVER EFFECTS ========== */
-.product-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-
-/* ========== SCROLL APPEAR ========== */
-.product-card.visible {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* ========== RESPONSIVE ========== */
-@media screen and (max-width: 600px) {
-    h1 { font-size: 1.5rem; }
-    h2 { font-size: 1.3rem; }
+  }
 }
